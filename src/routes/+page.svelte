@@ -14,16 +14,25 @@
 
 <div class="page">
 	<section class="hero">
-		<p class="solar">{today.dayOfWeek}, {String(today.solarDay).padStart(2, '0')}/{String(today.solarMonth).padStart(2, '0')}/{today.solarYear}</p>
-		<p class="lunar-day">{today.lunarDay}</p>
-		<p class="lunar-ctx">tháng {today.lunarMonthName} · {today.lunarYearName}</p>
+		<div class="info-block">
+			<span class="lbl">Dương lịch</span>
+			<p class="solar-val">{today.dayOfWeek}, {String(today.solarDay).padStart(2, '0')}/{String(today.solarMonth).padStart(2, '0')}/{today.solarYear}</p>
+		</div>
+
+		<div class="info-block">
+			<span class="lbl">Âm lịch</span>
+			<p class="lunar-day">{today.lunarDay}</p>
+			<p class="lunar-detail">tháng {today.lunarMonthName} · {today.lunarYearName}</p>
+		</div>
+
 		{#if today.holiday}
 			<p class="holiday">{today.holiday}</p>
 		{/if}
+
 		{#if today.daysUntilTet > 0}
-			<p class="tet">Còn {today.daysUntilTet} ngày đến Tết</p>
+			<p class="tet">Còn <strong>{today.daysUntilTet}</strong> ngày đến Tết</p>
 		{:else if today.daysUntilTet === 0}
-			<p class="tet highlight">Chúc Mừng Năm Mới!</p>
+			<p class="tet accent">Chúc Mừng Năm Mới!</p>
 		{/if}
 	</section>
 
@@ -69,23 +78,38 @@
 </div>
 
 <style>
+	/* ── Mobile-first base ── */
+
 	.page {
 		max-width: 400px;
 		margin: 0 auto;
-		padding: 20px 20px 48px;
+		padding: 16px 20px 48px;
 	}
 
-	/* ── Hero: today's lunar date ── */
+	/* ── Hero ── */
 
 	.hero {
 		text-align: center;
-		padding: 28px 0 32px;
+		padding: 24px 0 28px;
 	}
 
-	.solar {
-		font-size: 0.85rem;
-		color: #78716C;
-		margin: 0;
+	.info-block {
+		margin-bottom: 16px;
+	}
+
+	.lbl {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: #A8A29E;
+		font-weight: 600;
+	}
+
+	.solar-val {
+		font-size: 0.95rem;
+		color: #44403C;
+		margin: 4px 0 0;
+		font-weight: 500;
 	}
 
 	.lunar-day {
@@ -93,11 +117,11 @@
 		font-weight: 700;
 		color: #C41E3A;
 		line-height: 1;
-		margin: 8px 0 6px;
+		margin: 4px 0 4px;
 		letter-spacing: -0.02em;
 	}
 
-	.lunar-ctx {
+	.lunar-detail {
 		font-size: 0.95rem;
 		color: #57534E;
 		margin: 0;
@@ -110,22 +134,26 @@
 		background: #FEF2F2;
 		padding: 3px 14px;
 		border-radius: 16px;
-		margin: 14px 0 0;
+		margin: 4px 0 0;
 	}
 
 	.tet {
 		font-size: 0.8rem;
 		color: #A8A29E;
-		margin: 10px 0 0;
+		margin: 8px 0 0;
 	}
 
-	.tet.highlight {
+	.tet strong {
+		color: #C41E3A;
+	}
+
+	.tet.accent {
 		color: #C41E3A;
 		font-weight: 600;
 		font-size: 0.95rem;
 	}
 
-	/* ── Calendar grid ── */
+	/* ── Calendar ── */
 
 	.cal {
 		background: #fff;
@@ -246,5 +274,105 @@
 	.meta {
 		font-size: 0.75rem;
 		color: #A8A29E;
+	}
+
+	/* ── Desktop: two-column layout ── */
+
+	@media (min-width: 768px) {
+		.page {
+			max-width: 880px;
+			display: grid;
+			grid-template-columns: 5fr 6fr;
+			grid-template-rows: auto auto;
+			gap: 24px;
+			padding: 40px;
+			min-height: 100dvh;
+			align-content: center;
+		}
+
+		.hero {
+			grid-column: 1;
+			grid-row: 1 / -1;
+			align-self: center;
+			padding: 0;
+		}
+
+		.cal {
+			grid-column: 2;
+			grid-row: 1;
+			padding: 24px;
+		}
+
+		.upcoming {
+			grid-column: 2;
+			grid-row: 2;
+			padding: 0 4px;
+		}
+
+		/* Scale up typography */
+
+		.lbl {
+			font-size: 0.8rem;
+		}
+
+		.solar-val {
+			font-size: 1.1rem;
+		}
+
+		.lunar-day {
+			font-size: 8rem;
+		}
+
+		.lunar-detail {
+			font-size: 1.15rem;
+		}
+
+		.holiday {
+			font-size: 0.9rem;
+			padding: 4px 18px;
+			margin-top: 8px;
+		}
+
+		.tet {
+			font-size: 0.9rem;
+		}
+
+		.cal-title {
+			font-size: 1rem;
+			margin-bottom: 16px;
+		}
+
+		.cell {
+			min-height: 56px;
+		}
+
+		.sd {
+			font-size: 1rem;
+		}
+
+		.ld {
+			font-size: 0.7rem;
+		}
+
+		.ld.new-month {
+			font-size: 0.6rem;
+		}
+
+		.hdr {
+			font-size: 0.8rem;
+			padding: 6px 0 8px;
+		}
+
+		.name {
+			font-size: 0.95rem;
+		}
+
+		.meta {
+			font-size: 0.8rem;
+		}
+
+		.row {
+			padding: 10px 0;
+		}
 	}
 </style>
