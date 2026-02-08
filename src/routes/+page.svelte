@@ -8,36 +8,67 @@
 	} from '$lib/calendar';
 
 	const today = getTodayInfo();
-	const days = getCalendarDays();
-	const holidays = getUpcomingHolidays();
+	const holidays = getUpcomingHolidays().slice(0, 4);
+
+	let calMonth = $state(today.solarMonth);
+	let calYear = $state(today.solarYear);
+	let days = $derived(getCalendarDays(calMonth, calYear));
+
+	function prevMonth() {
+		if (calMonth === 1) {
+			calMonth = 12;
+			calYear--;
+		} else {
+			calMonth--;
+		}
+	}
+
+	function nextMonth() {
+		if (calMonth === 12) {
+			calMonth = 1;
+			calYear++;
+		} else {
+			calMonth++;
+		}
+	}
+
+	function goToday() {
+		calMonth = today.solarMonth;
+		calYear = today.solarYear;
+	}
+
+	const pad = (n: number) => String(n).padStart(2, '0');
+	const isCurrentMonth = $derived(calMonth === today.solarMonth && calYear === today.solarYear);
 </script>
 
 <div class="page">
 	<section class="hero">
-		<div class="info-block">
-			<span class="lbl">Dương lịch</span>
-			<p class="solar-val">{today.dayOfWeek}, {String(today.solarDay).padStart(2, '0')}/{String(today.solarMonth).padStart(2, '0')}/{today.solarYear}</p>
-		</div>
-
-		<div class="info-block">
-			<span class="lbl">Âm lịch</span>
-			<p class="lunar-day">{today.lunarDay}</p>
-			<p class="lunar-detail">tháng {today.lunarMonthName} · {today.lunarYearName}</p>
+		<div class="dates">
+			<span class="lbl">Âm lịch:</span>
+			<span class="date-val lunar">{pad(today.lunarDay)}/{pad(today.lunarMonth)}/{today.lunarYear}</span>
+			<span class="lbl">Dương lịch:</span>
+			<span class="date-val">{pad(today.solarDay)}/{pad(today.solarMonth)}/{today.solarYear}</span>
 		</div>
 
 		{#if today.holiday}
-			<p class="holiday">{today.holiday}</p>
+			<p class="holiday">Hôm nay là {today.holiday}</p>
 		{/if}
 
 		{#if today.daysUntilTet > 0}
-			<p class="tet">Còn <strong>{today.daysUntilTet}</strong> ngày đến Tết</p>
+			<p class="tet-countdown">Còn <strong>{today.daysUntilTet} ngày</strong> đến Tết</p>
 		{:else if today.daysUntilTet === 0}
-			<p class="tet accent">Chúc Mừng Năm Mới!</p>
+			<p class="tet-countdown now">Chúc Mừng Năm Mới!</p>
 		{/if}
 	</section>
 
 	<section class="cal">
-		<h2 class="cal-title">Tháng {today.solarMonth}, {today.solarYear}</h2>
+		<div class="cal-header">
+			<button class="nav-btn" onclick={prevMonth} aria-label="Tháng trước">&lsaquo;</button>
+			<button class="cal-title" class:muted={isCurrentMonth} onclick={goToday}>
+				Tháng {calMonth}, {calYear}
+			</button>
+			<button class="nav-btn" onclick={nextMonth} aria-label="Tháng sau">&rsaquo;</button>
+		</div>
 		<div class="grid">
 			{#each DAY_NAMES_SHORT as name, i}
 				<div class="hdr" class:weekend={i >= 5}>{name}</div>
@@ -67,9 +98,9 @@
 			<h2>Sắp tới</h2>
 			{#each holidays as h}
 				<div class="row">
-					<span class="name">{h.name}</span>
-					<span class="meta">
-						{h.daysUntil === 0 ? 'Hôm nay' : `${h.solarDate} · ${h.daysUntil} ngày`}
+					<span class="h-name">{h.name}</span>
+					<span class="h-count" class:h-today={h.daysUntil === 0}>
+						{h.daysUntil === 0 ? 'Hôm nay' : `còn ${h.daysUntil} ngày`}
 					</span>
 				</div>
 			{/each}
@@ -81,7 +112,7 @@
 	/* ── Mobile-first base ── */
 
 	.page {
-		max-width: 400px;
+		max-width: 420px;
 		margin: 0 auto;
 		padding: 16px 20px 48px;
 	}
@@ -90,96 +121,131 @@
 
 	.hero {
 		text-align: center;
-		padding: 24px 0 28px;
+		padding: 32px 0 36px;
 	}
 
-	.info-block {
-		margin-bottom: 16px;
+	.dates {
+		display: grid;
+		grid-template-columns: auto auto;
+		gap: 10px 14px;
+		justify-content: center;
+		align-items: baseline;
 	}
 
 	.lbl {
-		font-size: 0.7rem;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		color: #A8A29E;
-		font-weight: 600;
+		font-size: 0.9rem;
+		color: #78716C;
+		text-align: right;
 	}
 
-	.solar-val {
-		font-size: 0.95rem;
-		color: #44403C;
-		margin: 4px 0 0;
+	.date-val {
+		font-size: 1.15rem;
+		color: #1C1917;
 		font-weight: 500;
+		text-align: left;
 	}
 
-	.lunar-day {
-		font-size: 5.5rem;
+	.date-val.lunar {
+		font-size: 1.4rem;
 		font-weight: 700;
 		color: #C41E3A;
-		line-height: 1;
-		margin: 4px 0 4px;
-		letter-spacing: -0.02em;
-	}
-
-	.lunar-detail {
-		font-size: 0.95rem;
-		color: #57534E;
-		margin: 0;
 	}
 
 	.holiday {
-		display: inline-block;
-		font-size: 0.8rem;
+		font-size: 1.05rem;
 		color: #C41E3A;
-		background: #FEF2F2;
-		padding: 3px 14px;
-		border-radius: 16px;
-		margin: 4px 0 0;
+		font-weight: 500;
+		margin: 16px 0 0;
 	}
 
-	.tet {
-		font-size: 0.8rem;
-		color: #A8A29E;
-		margin: 8px 0 0;
+	.tet-countdown {
+		font-size: 1rem;
+		color: #57534E;
+		margin: 10px 0 0;
 	}
 
-	.tet strong {
+	.tet-countdown strong {
 		color: #C41E3A;
 	}
 
-	.tet.accent {
+	.tet-countdown.now {
 		color: #C41E3A;
-		font-weight: 600;
-		font-size: 0.95rem;
+		font-weight: 700;
+		font-size: 1.15rem;
 	}
 
 	/* ── Calendar ── */
 
 	.cal {
 		background: #fff;
-		border-radius: 14px;
-		padding: 16px;
+		border-radius: 16px;
+		padding: 18px;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 	}
 
+	.cal-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 14px;
+	}
+
 	.cal-title {
-		font-size: 0.9rem;
+		font-size: 0.95rem;
 		font-weight: 600;
-		margin: 0 0 12px 4px;
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: #1C1917;
+		padding: 4px 12px;
+		border-radius: 8px;
+		font-family: inherit;
+	}
+
+	.cal-title:hover {
+		background: #F5F5F4;
+	}
+
+	.cal-title.muted {
+		cursor: default;
+	}
+
+	.cal-title.muted:hover {
+		background: none;
+	}
+
+	.nav-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border-radius: 10px;
+		border: 1px solid #E7E5E4;
+		background: none;
+		cursor: pointer;
+		font-size: 1.2rem;
+		color: #57534E;
+		font-family: inherit;
+		transition: background 0.15s;
+	}
+
+	.nav-btn:hover {
+		background: #F5F5F4;
 	}
 
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(7, 1fr);
-		gap: 2px;
+		gap: 3px;
 	}
 
 	.hdr {
 		text-align: center;
-		font-size: 0.7rem;
+		font-size: 0.72rem;
 		font-weight: 600;
 		color: #A8A29E;
-		padding: 4px 0 6px;
+		padding: 4px 0 8px;
 	}
 
 	.hdr.weekend {
@@ -191,9 +257,9 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		min-height: 44px;
-		border-radius: 8px;
-		gap: 1px;
+		min-height: 46px;
+		border-radius: 10px;
+		gap: 2px;
 	}
 
 	.cell.empty {
@@ -201,15 +267,15 @@
 	}
 
 	.sd {
-		font-size: 0.85rem;
+		font-size: 0.88rem;
 		font-weight: 500;
-		line-height: 1.3;
+		line-height: 1.2;
 	}
 
 	.ld {
 		font-size: 0.6rem;
-		color: #BDBDBD;
-		line-height: 1.2;
+		color: #C4C0BB;
+		line-height: 1.1;
 	}
 
 	.ld.new-month {
@@ -242,23 +308,23 @@
 	/* ── Upcoming ── */
 
 	.upcoming {
-		padding: 20px 4px 0;
+		padding: 24px 4px 0;
 	}
 
 	.upcoming h2 {
-		font-size: 0.8rem;
+		font-size: 0.75rem;
 		font-weight: 600;
 		color: #A8A29E;
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		margin: 0 0 10px;
+		letter-spacing: 0.1em;
+		margin: 0 0 12px;
 	}
 
 	.row {
 		display: flex;
 		justify-content: space-between;
 		align-items: baseline;
-		padding: 8px 0;
+		padding: 10px 0;
 		border-bottom: 1px solid #F0EDE8;
 	}
 
@@ -266,26 +332,34 @@
 		border-bottom: none;
 	}
 
-	.name {
-		font-size: 0.85rem;
+	.h-name {
+		font-size: 0.9rem;
 		font-weight: 500;
 	}
 
-	.meta {
-		font-size: 0.75rem;
-		color: #A8A29E;
+	.h-count {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: #C41E3A;
 	}
 
-	/* ── Desktop: two-column layout ── */
+	.h-count.h-today {
+		background: #C41E3A;
+		color: #fff;
+		padding: 2px 12px;
+		border-radius: 12px;
+	}
+
+	/* ── Desktop ── */
 
 	@media (min-width: 768px) {
 		.page {
-			max-width: 880px;
+			max-width: 900px;
 			display: grid;
 			grid-template-columns: 5fr 6fr;
 			grid-template-rows: auto auto;
-			gap: 24px;
-			padding: 40px;
+			gap: 32px;
+			padding: 48px;
 			min-height: 100dvh;
 			align-content: center;
 		}
@@ -300,7 +374,7 @@
 		.cal {
 			grid-column: 2;
 			grid-row: 1;
-			padding: 24px;
+			padding: 28px;
 		}
 
 		.upcoming {
@@ -309,41 +383,44 @@
 			padding: 0 4px;
 		}
 
-		/* Scale up typography */
+		.dates {
+			gap: 12px 18px;
+		}
 
 		.lbl {
-			font-size: 0.8rem;
+			font-size: 1.05rem;
 		}
 
-		.solar-val {
-			font-size: 1.1rem;
+		.date-val {
+			font-size: 1.35rem;
 		}
 
-		.lunar-day {
-			font-size: 8rem;
-		}
-
-		.lunar-detail {
-			font-size: 1.15rem;
+		.date-val.lunar {
+			font-size: 1.7rem;
 		}
 
 		.holiday {
-			font-size: 0.9rem;
-			padding: 4px 18px;
-			margin-top: 8px;
+			font-size: 1.2rem;
+			margin-top: 20px;
 		}
 
-		.tet {
-			font-size: 0.9rem;
+		.tet-countdown {
+			font-size: 1.15rem;
+			margin-top: 12px;
 		}
 
 		.cal-title {
-			font-size: 1rem;
-			margin-bottom: 16px;
+			font-size: 1.05rem;
+		}
+
+		.nav-btn {
+			width: 40px;
+			height: 40px;
+			font-size: 1.3rem;
 		}
 
 		.cell {
-			min-height: 56px;
+			min-height: 58px;
 		}
 
 		.sd {
@@ -360,19 +437,19 @@
 
 		.hdr {
 			font-size: 0.8rem;
-			padding: 6px 0 8px;
+			padding: 6px 0 10px;
 		}
 
-		.name {
-			font-size: 0.95rem;
+		.h-name {
+			font-size: 1rem;
 		}
 
-		.meta {
-			font-size: 0.8rem;
+		.h-count {
+			font-size: 1.1rem;
 		}
 
 		.row {
-			padding: 10px 0;
+			padding: 12px 0;
 		}
 	}
 </style>
