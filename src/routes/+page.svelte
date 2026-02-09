@@ -168,13 +168,20 @@
 	{/if}
 </div>
 
+<footer class="footer">
+	<span>by <a href="https://github.com/thethongngu" target="_blank" rel="noopener">thethongngu</a></span>
+	<span class="sep">·</span>
+	<!-- Replace YOUR_USERNAME below with your Ko-fi username -->
+	<a href="https://ko-fi.com/thethongngu" target="_blank" rel="noopener" class="kofi-link">Buy me a coffee</a>
+</footer>
+
 <style>
 	/* ── Mobile-first base ── */
 
 	.page {
 		max-width: 420px;
 		margin: 0 auto;
-		padding: 16px 20px 48px;
+		padding: 16px 20px 24px;
 	}
 
 	/* ── Hero Cards ── */
@@ -560,8 +567,16 @@
 			grid-template-rows: auto auto;
 			gap: 32px;
 			padding: 48px;
+			padding-bottom: 64px;
 			min-height: 100dvh;
-			align-content: center;
+			align-content: start;
+		}
+
+		.footer {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			right: 0;
 		}
 
 		.today-col {
@@ -660,5 +675,36 @@
 		.row {
 			padding: 12px 0;
 		}
+	}
+
+	/* ── Footer ── */
+
+	.footer {
+		text-align: center;
+		padding: 16px;
+		font-size: 0.8rem;
+		color: #A8A29E;
+	}
+
+	.footer a {
+		color: #78716C;
+		text-decoration: none;
+		font-weight: 500;
+	}
+
+	.footer a:hover {
+		color: #1C1917;
+	}
+
+	.sep {
+		margin: 0 6px;
+	}
+
+	.kofi-link {
+		color: #FF5E5B !important;
+	}
+
+	.kofi-link:hover {
+		color: #e04644 !important;
 	}
 </style>
