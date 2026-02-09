@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		getTodayInfo,
+		getDateInfo,
 		getCalendarDays,
 		getUpcomingHolidays,
 		DAY_NAMES_SHORT,
@@ -14,6 +15,11 @@
 	let calMonth = $state(today.solarMonth);
 	let calYear = $state(today.solarYear);
 	let days = $derived(getCalendarDays(calMonth, calYear));
+
+	let selectedDay = $state(today.solarDay);
+	let selectedMonth = $state(today.solarMonth);
+	let selectedYear = $state(today.solarYear);
+	let selected = $derived(getDateInfo(selectedDay, selectedMonth, selectedYear));
 
 	function prevMonth() {
 		if (calMonth === 1) {
@@ -36,43 +42,56 @@
 	function goToday() {
 		calMonth = today.solarMonth;
 		calYear = today.solarYear;
+		selectDate(today.solarDay, today.solarMonth, today.solarYear);
 	}
 
-	function goToHoliday(month: number, year: number) {
+	function selectDate(day: number, month: number, year: number) {
+		selectedDay = day;
+		selectedMonth = month;
+		selectedYear = year;
+	}
+
+	function goToHoliday(day: number, month: number, year: number) {
 		calMonth = month;
 		calYear = year;
+		selectDate(day, month, year);
 	}
 
 	const pad = (n: number) => String(n).padStart(2, '0');
 	const isCurrentMonth = $derived(calMonth === today.solarMonth && calYear === today.solarYear);
+	const isSelectedToday = $derived(
+		selectedDay === today.solarDay && selectedMonth === today.solarMonth && selectedYear === today.solarYear
+	);
 </script>
 
 <div class="page">
 	<div class="today-col">
 		{#if nextHoliday}
 			<div class="next-holiday" class:is-today={nextHoliday.daysUntil === 0}>
-				{#if nextHoliday.daysUntil === 0}
-					Hôm nay là <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
+				{#if !isSelectedToday}
+					<button class="back-today" onclick={goToday}>&larr; Quay về hôm nay</button>
+				{:else if nextHoliday.daysUntil === 0}
+					Hôm nay là <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
 				{:else}
-					Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
+					Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
 				{/if}
 			</div>
 		{/if}
 		<section class="hero">
 			<div class="hero-top">
-				<span class="dow">{today.dayOfWeek}</span>
-				<span class="solar-date">{pad(today.solarDay)}/{pad(today.solarMonth)}/{today.solarYear}</span>
+				<span class="dow">{selected.dayOfWeek}</span>
+				<span class="solar-date"> Dương lịch: {pad(selected.solarDay)}/{pad(selected.solarMonth)}/{selected.solarYear}</span>
 			</div>
 
-			<div class="lunar-day">{today.lunarDay}</div>
+			<div class="lunar-day">{selected.lunarDay}</div>
 
 			<div class="lunar-info">
-				Tháng {LUNAR_MONTH_NAMES[today.lunarMonth]}{today.lunarLeap ? ' (Nhuận)' : ''}
+				Tháng {LUNAR_MONTH_NAMES[selected.lunarMonth]}{selected.lunarLeap ? ' (Nhuận)' : ''}
 			</div>
-			<div class="lunar-year">Năm {today.lunarYearName} — {today.lunarYear}</div>
+			<div class="lunar-year">Năm {selected.lunarYearName} — {selected.lunarYear}</div>
 
-			{#if today.holiday}
-				<div class="holiday">{today.holiday}</div>
+			{#if selected.holiday}
+				<div class="holiday">{selected.holiday}</div>
 			{/if}
 		</section>
 	</div>
@@ -91,20 +110,23 @@
 			{/each}
 
 			{#each days as day}
-				<div
+				<button
 					class="cell"
 					class:is-today={day.isToday}
+					class:is-selected={day.isCurrentMonth && day.solarDay === selectedDay && calMonth === selectedMonth && calYear === selectedYear}
 					class:empty={!day.isCurrentMonth}
 					class:is-holiday={!!day.holiday && !day.isToday}
 					class:is-weekend={day.isWeekend && !day.isToday}
+					disabled={!day.isCurrentMonth}
+					onclick={() => selectDate(day.solarDay, calMonth, calYear)}
 				>
 					{#if day.isCurrentMonth}
 						<span class="sd">{day.solarDay}</span>
 						<span class="ld" class:new-month={day.lunarDay === 1}>
-							{day.lunarDay === 1 ? LUNAR_MONTH_NAMES[day.lunarMonth] : day.lunarDay}
+							{day.lunarDay === 1 ? `${day.lunarMonth}/1` : day.lunarDay}
 						</span>
 					{/if}
-				</div>
+				</button>
 			{/each}
 		</div>
 	</section>
@@ -113,12 +135,12 @@
 		<section class="upcoming">
 			<h2>Sắp tới</h2>
 			{#each holidays as h}
-				<div class="row">
+				<button class="row" onclick={() => goToHoliday(h.solarDay, h.solarMonth, h.solarYear)}>
 					<span class="h-name">{h.name}</span>
 					<span class="h-count" class:h-today={h.daysUntil === 0}>
 						{h.daysUntil === 0 ? 'Hôm nay' : `còn ${h.daysUntil} ngày`}
 					</span>
-				</div>
+				</button>
 			{/each}
 		</section>
 	{/if}
@@ -325,10 +347,25 @@
 		min-height: 46px;
 		border-radius: 10px;
 		gap: 2px;
+		border: none;
+		background: none;
+		padding: 0;
+		cursor: pointer;
+		font-family: inherit;
+		transition: background 0.1s;
+	}
+
+	.cell:not(.empty):not(.is-today):hover {
+		background: #F5F5F4;
+	}
+
+	.cell.is-today:hover {
+		background: #A8162E;
 	}
 
 	.cell.empty {
 		min-height: 0;
+		cursor: default;
 	}
 
 	.sd {
@@ -370,6 +407,27 @@
 		color: rgba(255, 255, 255, 0.6);
 	}
 
+	.cell.is-selected:not(.is-today) {
+		outline: 2px solid #C41E3A;
+		outline-offset: -2px;
+	}
+
+	.back-today {
+		background: none;
+		border: none;
+		font-family: inherit;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: #78716C;
+		cursor: pointer;
+		padding: 0;
+		transition: color 0.15s;
+	}
+
+	.back-today:hover {
+		color: #C41E3A;
+	}
+
 	/* ── Upcoming ── */
 
 	.upcoming {
@@ -387,10 +445,24 @@
 
 	.row {
 		display: flex;
+		width: 100%;
 		justify-content: space-between;
 		align-items: baseline;
-		padding: 10px 0;
+		padding: 10px 8px;
+		margin: 0 -8px;
 		border-bottom: 1px solid #F0EDE8;
+		background: none;
+		border-left: none;
+		border-right: none;
+		border-top: none;
+		cursor: pointer;
+		font-family: inherit;
+		border-radius: 8px;
+		transition: background 0.15s;
+	}
+
+	.row:hover {
+		background: #F5F5F4;
 	}
 
 	.row:last-child {
@@ -419,9 +491,9 @@
 
 	@media (min-width: 768px) {
 		.page {
-			max-width: 900px;
+			max-width: 960px;
 			display: grid;
-			grid-template-columns: 5fr 6fr;
+			grid-template-columns: 1fr 1fr;
 			grid-template-rows: auto auto;
 			gap: 32px;
 			padding: 48px;
@@ -436,19 +508,19 @@
 		}
 
 		.hero {
-			padding: 36px 28px;
+			padding: 36px 32px;
 		}
 
 		.dow {
-			font-size: 1.3rem;
+			font-size: 1.1rem;
 		}
 
 		.solar-date {
-			font-size: 1.15rem;
+			font-size: 0.95rem;
 		}
 
 		.lunar-day {
-			font-size: 7.5rem;
+			font-size: 7rem;
 			margin: 8px 0 12px;
 		}
 

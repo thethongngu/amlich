@@ -227,7 +227,7 @@ const LUNAR_HOLIDAYS: HolidayDef[] = [
 ];
 
 const SOLAR_HOLIDAYS: HolidayDef[] = [
-	{ name: 'Ngày Văn hóa Việt Nam', day: 19, month: 4 },
+	{ name: 'Ngày Văn hóa Việt Nam', day: 24, month: 11 },
 	{ name: 'Giải Phóng Miền Nam', day: 30, month: 4 },
 	{ name: 'Quốc Tế Lao Động', day: 1, month: 5 },
 	{ name: 'Quốc Khánh', day: 2, month: 9 },
@@ -256,23 +256,20 @@ export interface TodayInfo {
 	daysUntilTet: number;
 }
 
-export function getTodayInfo(): TodayInfo {
-	const now = new Date();
-	const dow = (now.getDay() + 6) % 7;
-	const d = now.getDate();
-	const m = now.getMonth() + 1;
-	const y = now.getFullYear();
+export function getDateInfo(d: number, m: number, y: number): TodayInfo {
+	const date = new Date(y, m - 1, d);
+	const dow = (date.getDay() + 6) % 7;
 
 	const [lunarDay, lunarMonth, lunarYear, lunarLeap] = convertSolar2Lunar(d, m, y, TIMEZONE);
-	const todayJd = jdFromDate(d, m, y);
+	const dateJd = jdFromDate(d, m, y);
 
-	// Find next Tết
+	// Find next Tết from this date
 	let daysUntilTet = 0;
 	for (const yr of [lunarYear, lunarYear + 1]) {
 		const tetSolar = convertLunar2Solar(1, 1, yr, 0, TIMEZONE);
 		const tetJd = jdFromDate(tetSolar[0], tetSolar[1], tetSolar[2]);
-		if (tetJd >= todayJd) {
-			daysUntilTet = tetJd - todayJd;
+		if (tetJd >= dateJd) {
+			daysUntilTet = tetJd - dateJd;
 			break;
 		}
 	}
@@ -290,6 +287,11 @@ export function getTodayInfo(): TodayInfo {
 		holiday: findHoliday(lunarDay, lunarMonth, d, m),
 		daysUntilTet,
 	};
+}
+
+export function getTodayInfo(): TodayInfo {
+	const now = new Date();
+	return getDateInfo(now.getDate(), now.getMonth() + 1, now.getFullYear());
 }
 
 export interface CalendarDay {
