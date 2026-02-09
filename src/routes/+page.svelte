@@ -115,7 +115,7 @@
 					class:is-today={day.isToday}
 					class:is-selected={day.isCurrentMonth && day.solarDay === selectedDay && calMonth === selectedMonth && calYear === selectedYear}
 					class:empty={!day.isCurrentMonth}
-					class:is-holiday={!!day.holiday && !day.isToday}
+					class:is-holiday={day.isOffWork && !day.isToday}
 					class:is-weekend={day.isWeekend && !day.isToday}
 					disabled={!day.isCurrentMonth}
 					onclick={() => selectDate(day.solarDay, calMonth, calYear)}

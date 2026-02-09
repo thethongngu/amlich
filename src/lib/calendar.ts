@@ -217,27 +217,35 @@ interface HolidayDef {
 	name: string;
 	day: number;
 	month: number;
+	offWork: boolean;
 }
 
 const LUNAR_HOLIDAYS: HolidayDef[] = [
-	{ name: 'Tết Nguyên Đán', day: 1, month: 1 },
-	{ name: 'Mùng 2 Tết', day: 2, month: 1 },
-	{ name: 'Mùng 3 Tết', day: 3, month: 1 },
-	{ name: 'Giỗ Tổ Hùng Vương', day: 10, month: 3 },
+	{ name: 'Cúng ông Táo', day: 23, month: 12, offWork: false },
+	{ name: 'Tết Nguyên Đán', day: 1, month: 1, offWork: true },
+	{ name: 'Mùng 2 Tết', day: 2, month: 1, offWork: true },
+	{ name: 'Mùng 3 Tết', day: 3, month: 1, offWork: true },
+	{ name: 'Giỗ Tổ Hùng Vương', day: 10, month: 3, offWork: true },
 ];
 
 const SOLAR_HOLIDAYS: HolidayDef[] = [
-	{ name: 'Ngày Văn hóa Việt Nam', day: 24, month: 11 },
-	{ name: 'Giải Phóng Miền Nam', day: 30, month: 4 },
-	{ name: 'Quốc Tế Lao Động', day: 1, month: 5 },
-	{ name: 'Quốc Khánh', day: 2, month: 9 },
+	{ name: 'Ngày Văn hóa Việt Nam', day: 24, month: 11, offWork: true },
+	{ name: 'Giải Phóng Miền Nam', day: 30, month: 4, offWork: true },
+	{ name: 'Quốc Tế Lao Động', day: 1, month: 5, offWork: true },
+	{ name: 'Quốc Khánh', day: 2, month: 9, offWork: true },
 ];
 
-function findHoliday(lunarDay: number, lunarMonth: number, solarDay: number, solarMonth: number): string | undefined {
+interface HolidayMatch {
+	name: string;
+	offWork: boolean;
+}
+
+function findHoliday(lunarDay: number, lunarMonth: number, solarDay: number, solarMonth: number): HolidayMatch | undefined {
 	const lunar = LUNAR_HOLIDAYS.find(h => h.day === lunarDay && h.month === lunarMonth);
-	if (lunar) return lunar.name;
+	if (lunar) return { name: lunar.name, offWork: lunar.offWork };
 	const solar = SOLAR_HOLIDAYS.find(h => h.day === solarDay && h.month === solarMonth);
-	return solar?.name;
+	if (solar) return { name: solar.name, offWork: solar.offWork };
+	return undefined;
 }
 
 // ── Public API ──
@@ -284,7 +292,7 @@ export function getDateInfo(d: number, m: number, y: number): TodayInfo {
 		lunarYear,
 		lunarYearName: getCanChiYear(lunarYear),
 		lunarLeap: lunarLeap === 1,
-		holiday: findHoliday(lunarDay, lunarMonth, d, m),
+		holiday: findHoliday(lunarDay, lunarMonth, d, m)?.name,
 		daysUntilTet,
 	};
 }
@@ -301,6 +309,7 @@ export interface CalendarDay {
 	isToday: boolean;
 	isCurrentMonth: boolean;
 	holiday?: string;
+	isOffWork: boolean;
 	isWeekend: boolean;
 }
 
@@ -319,20 +328,22 @@ export function getCalendarDays(solarMonth: number, solarYear: number): Calendar
 	for (let i = 0; i < startOffset; i++) {
 		days.push({
 			solarDay: 0, lunarDay: 0, lunarMonth: 0,
-			isToday: false, isCurrentMonth: false, isWeekend: false,
+			isToday: false, isCurrentMonth: false, isWeekend: false, isOffWork: false,
 		});
 	}
 
 	for (let d = 1; d <= daysInMonth; d++) {
 		const [lunarDay, lunarMonth] = convertSolar2Lunar(d, solarMonth, solarYear, TIMEZONE);
 		const dayOfWeek = (startOffset + d - 1) % 7;
+		const match = findHoliday(lunarDay, lunarMonth, d, solarMonth);
 		days.push({
 			solarDay: d,
 			lunarDay,
 			lunarMonth,
 			isToday: d === todayDay && solarMonth === todayMonth && solarYear === todayYear,
 			isCurrentMonth: true,
-			holiday: findHoliday(lunarDay, lunarMonth, d, solarMonth),
+			holiday: match?.name,
+			isOffWork: match?.offWork ?? false,
 			isWeekend: dayOfWeek === 5 || dayOfWeek === 6,
 		});
 	}
