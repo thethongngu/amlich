@@ -364,7 +364,6 @@
 	}
 
 	.cell.empty {
-		min-height: 0;
 		cursor: default;
 	}
 

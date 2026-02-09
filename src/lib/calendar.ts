@@ -348,6 +348,14 @@ export function getCalendarDays(solarMonth: number, solarYear: number): Calendar
 		});
 	}
 
+	// Pad to 42 cells (6 rows) so calendar height stays fixed
+	while (days.length < 42) {
+		days.push({
+			solarDay: 0, lunarDay: 0, lunarMonth: 0,
+			isToday: false, isCurrentMonth: false, isWeekend: false, isOffWork: false,
+		});
+	}
+
 	return days;
 }
 
