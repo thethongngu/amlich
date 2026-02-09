@@ -78,7 +78,7 @@
 				{#if !isSelectedToday}
 					<button class="back-today" onclick={goToday}>&larr; Quay về hôm nay</button>
 				{:else if nextHoliday.daysUntil === 0}
-					Hôm nay là <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
+					<span class="today-label">Hôm nay là </span> <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
 				{:else}
 					Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
 				{/if}
@@ -320,9 +320,13 @@
 	}
 
 	.next-holiday.is-today {
-		color: #C41E3A;
 		font-weight: 700;
 		font-size: 1.5rem;
+		min-height: auto;
+	}
+
+	.today-label {
+		color: #000;
 	}
 
 	/* ── Calendar ── */
