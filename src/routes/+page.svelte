@@ -21,7 +21,13 @@
 	let selectedYear = $state(today.solarYear);
 	let selected = $derived(getDateInfo(selectedDay, selectedMonth, selectedYear));
 
-	let showBoth = $state(true);
+	const SHOW_BOTH_KEY = 'amlich-show-both';
+	let showBoth = $state(
+		typeof localStorage !== 'undefined' ? localStorage.getItem(SHOW_BOTH_KEY) !== 'false' : true
+	);
+	$effect(() => {
+		localStorage.setItem(SHOW_BOTH_KEY, String(showBoth));
+	});
 
 	function prevMonth() {
 		if (calMonth === 1) {
@@ -561,7 +567,8 @@
 		.today-col {
 			grid-column: 1;
 			grid-row: 1 / -1;
-			align-self: center;
+			align-self: start;
+			padding-top: 100px;
 		}
 
 		.hero {
