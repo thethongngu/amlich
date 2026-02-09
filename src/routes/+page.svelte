@@ -279,6 +279,8 @@
 		color: #57534E;
 		text-align: center;
 		margin-bottom: 16px;
+		min-height: 2.4em;
+		position: relative;
 	}
 
 	.next-holiday strong {
@@ -473,6 +475,10 @@
 		cursor: pointer;
 		padding: 0;
 		transition: color 0.15s;
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		transform: translateX(-50%);
 	}
 
 	.back-today:hover {
@@ -585,6 +591,7 @@
 			font-size: 1.8rem;
 			font-weight: 500;
 			margin-bottom: 20px;
+			min-height: 3em;
 		}
 
 		.next-holiday.is-today {
