@@ -9,7 +9,7 @@
 	} from '$lib/calendar';
 
 	const today = getTodayInfo();
-	const holidays = getUpcomingHolidays().slice(0, 4);
+	const holidays = getUpcomingHolidays();
 	const nextHoliday = holidays[0] ?? null;
 
 	let calMonth = $state(today.solarMonth);
@@ -156,14 +156,16 @@
 	{#if holidays.length > 0}
 		<section class="upcoming">
 			<h2>Sắp tới</h2>
-			{#each holidays as h}
-				<button class="row" onclick={() => goToHoliday(h.solarDay, h.solarMonth, h.solarYear)}>
-					<span class="h-name">{h.name}</span>
-					<span class="h-count" class:h-today={h.daysUntil === 0}>
-						{h.daysUntil === 0 ? 'Hôm nay' : `còn ${h.daysUntil} ngày`}
-					</span>
-				</button>
-			{/each}
+			<div class="upcoming-list">
+				{#each holidays as h}
+					<button class="row" onclick={() => goToHoliday(h.solarDay, h.solarMonth, h.solarYear)}>
+						<span class="h-name">{h.name}</span>
+						<span class="h-count" class:h-today={h.daysUntil === 0}>
+							{h.daysUntil === 0 ? 'Hôm nay' : `còn ${h.daysUntil} ngày`}
+						</span>
+					</button>
+				{/each}
+			</div>
 		</section>
 	{/if}
 </div>
@@ -505,7 +507,7 @@
 	/* ── Upcoming ── */
 
 	.upcoming {
-		padding: 24px 4px 0;
+		padding: 24px 20px 0;
 	}
 
 	.upcoming h2 {
@@ -568,11 +570,12 @@
 			max-width: 960px;
 			display: grid;
 			grid-template-columns: 1fr 1fr;
-			grid-template-rows: auto auto;
+			grid-template-rows: auto 1fr;
 			gap: 32px;
 			padding: 48px;
 			padding-bottom: 64px;
-			min-height: 100dvh;
+			height: 100dvh;
+			box-sizing: border-box;
 			align-content: start;
 		}
 
@@ -634,7 +637,17 @@
 		.upcoming {
 			grid-column: 2;
 			grid-row: 2;
-			padding: 0 4px;
+			padding: 0;
+			min-height: 0;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.upcoming-list {
+			overflow-y: auto;
+			min-height: 0;
+			flex: 1;
+			padding: 0 16px;
 		}
 
 		.cal-title {
