@@ -59,7 +59,6 @@
 		selectDate(day, month, year);
 	}
 
-	const pad = (n: number) => String(n).padStart(2, '0');
 	const isCurrentMonth = $derived(calMonth === today.solarMonth && calYear === today.solarYear);
 	const isSelectedToday = $derived(
 		selectedDay === today.solarDay && selectedMonth === today.solarMonth && selectedYear === today.solarYear
@@ -81,48 +80,35 @@
 		{/if}
 		<div class="hero-cards">
 			<section class="hero solar-card" class:hidden={!showBoth}>
-				<div class="hero-top">
-					<span class="dow">{selected.dayOfWeek}</span>
-					<span class="solar-date">{pad(selected.solarDay)}/{pad(selected.solarMonth)}/{selected.solarYear}</span>
-				</div>
-
+				<div class="card-title">Dương lịch</div>
 				<div class="big-day solar-big-day">{selected.solarDay}</div>
-
-				<div class="card-info">Tháng {selected.solarMonth}, {selected.solarYear}</div>
-
-				{#if selected.holiday && selected.holidayType === 'solar'}
-					<div class="holiday solar-holiday">{selected.holiday}</div>
-				{/if}
+				<div class="card-info">Tháng {selected.solarMonth}</div>
+				<div class="card-sub">{selected.solarYear}</div>
+				<div class="holiday-slot">
+					{#if selected.holiday && selected.holidayType === 'solar'}
+						<div class="holiday solar-holiday">{selected.holiday}</div>
+					{/if}
+				</div>
 			</section>
 
 			<section class="hero lunar-card">
-				{#if !showBoth}
-					<div class="hero-top">
-						<span class="dow">{selected.dayOfWeek}</span>
-						<span class="solar-date">Âm lịch: {pad(selected.lunarDay)}/{pad(selected.lunarMonth)}</span>
-					</div>
-				{:else}
-					<div class="hero-top">
-						<span class="lunar-label">Âm lịch</span>
-					</div>
-				{/if}
-
+				<div class="card-title">Âm lịch</div>
 				<div class="big-day lunar-big-day">{selected.lunarDay}</div>
-
 				<div class="card-info">
 					Tháng {LUNAR_MONTH_NAMES[selected.lunarMonth]}{selected.lunarLeap ? ' (Nhuận)' : ''}
 				</div>
 				<div class="card-sub">Năm {selected.lunarYearName}</div>
-
-				{#if selected.holiday && selected.holidayType === 'lunar'}
-					<div class="holiday">{selected.holiday}</div>
-				{/if}
+				<div class="holiday-slot">
+					{#if selected.holiday && selected.holidayType === 'lunar'}
+						<div class="holiday">{selected.holiday}</div>
+					{/if}
+				</div>
 			</section>
 		</div>
 
 		<label class="toggle-row">
 			<input type="checkbox" bind:checked={showBoth} />
-			<span>Hiển thị cả hai</span>
+			<span>Hiển thị Dương lịch + Âm lịch</span>
 		</label>
 	</div>
 
@@ -195,40 +181,25 @@
 	.hero {
 		flex: 1;
 		text-align: center;
-		padding: 20px 12px 24px;
+		padding: 20px 12px 16px;
 		background: #fff;
 		border-radius: 20px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
 
 	.hero.hidden {
 		display: none;
 	}
 
-	.hero-top {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		margin-bottom: 4px;
-	}
-
-	.dow {
+	.card-title {
 		font-size: 0.85rem;
 		font-weight: 600;
-		color: #1C1917;
-	}
-
-	.solar-date {
-		font-size: 0.8rem;
 		color: #78716C;
-		font-weight: 500;
-	}
-
-	.lunar-label {
-		font-size: 0.8rem;
-		color: #78716C;
-		font-weight: 500;
+		margin-bottom: 4px;
 	}
 
 	.big-day {
@@ -240,7 +211,7 @@
 	}
 
 	.solar-big-day {
-		color: #1C1917;
+		color: #2563EB;
 	}
 
 	.lunar-big-day {
@@ -259,20 +230,27 @@
 		margin-top: 2px;
 	}
 
+	.holiday-slot {
+		min-height: 36px;
+		display: flex;
+		align-items: center;
+		margin-top: auto;
+		padding-top: 8px;
+	}
+
 	.holiday {
 		display: inline-block;
 		font-size: 0.85rem;
 		color: #C41E3A;
 		font-weight: 600;
-		margin-top: 12px;
 		padding: 4px 12px;
 		background: #FEF2F2;
 		border-radius: 20px;
 	}
 
 	.solar-holiday {
-		color: #1C1917;
-		background: #F5F5F4;
+		color: #2563EB;
+		background: #EFF6FF;
 	}
 
 	.toggle-row {
@@ -581,15 +559,7 @@
 		}
 
 		.hero {
-			padding: 28px 20px 32px;
-		}
-
-		.dow {
-			font-size: 0.95rem;
-		}
-
-		.solar-date {
-			font-size: 0.85rem;
+			padding: 28px 20px 20px;
 		}
 
 		.big-day {
@@ -608,7 +578,6 @@
 
 		.holiday {
 			font-size: 0.95rem;
-			margin-top: 16px;
 			padding: 6px 16px;
 		}
 
