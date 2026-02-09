@@ -341,6 +341,9 @@ export function getCalendarDays(solarMonth: number, solarYear: number): Calendar
 export interface UpcomingHoliday {
 	name: string;
 	solarDate: string;
+	solarDay: number;
+	solarMonth: number;
+	solarYear: number;
 	daysUntil: number;
 }
 
@@ -364,6 +367,9 @@ export function getUpcomingHolidays(): UpcomingHoliday[] {
 				results.push({
 					name: h.name,
 					solarDate: `${pad(solar[0])}/${pad(solar[1])}`,
+					solarDay: solar[0],
+					solarMonth: solar[1],
+					solarYear: solar[2],
 					daysUntil: jd - todayJd,
 				});
 				break;
@@ -379,6 +385,9 @@ export function getUpcomingHolidays(): UpcomingHoliday[] {
 				results.push({
 					name: h.name,
 					solarDate: `${pad(h.day)}/${pad(h.month)}`,
+					solarDay: h.day,
+					solarMonth: h.month,
+					solarYear: yr,
 					daysUntil: jd - todayJd,
 				});
 				break;

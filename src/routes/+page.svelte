@@ -9,6 +9,7 @@
 
 	const today = getTodayInfo();
 	const holidays = getUpcomingHolidays().slice(0, 4);
+	const nextHoliday = holidays[0] ?? null;
 
 	let calMonth = $state(today.solarMonth);
 	let calYear = $state(today.solarYear);
@@ -37,19 +38,23 @@
 		calYear = today.solarYear;
 	}
 
+	function goToHoliday(month: number, year: number) {
+		calMonth = month;
+		calYear = year;
+	}
+
 	const pad = (n: number) => String(n).padStart(2, '0');
 	const isCurrentMonth = $derived(calMonth === today.solarMonth && calYear === today.solarYear);
 </script>
 
 <div class="page">
 	<div class="today-col">
-		{#if holidays.length > 0}
-			{@const next = holidays[0]}
-			<div class="next-holiday" class:is-today={next.daysUntil === 0}>
-				{#if next.daysUntil === 0}
-					Hôm nay là <strong>{next.name}</strong>
+		{#if nextHoliday}
+			<div class="next-holiday" class:is-today={nextHoliday.daysUntil === 0}>
+				{#if nextHoliday.daysUntil === 0}
+					Hôm nay là <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
 				{:else}
-					Còn <strong>{next.daysUntil} ngày</strong> đến {next.name}
+					Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
 				{/if}
 			</div>
 		{/if}
@@ -199,11 +204,30 @@
 		font-size: 1.3rem;
 		color: #57534E;
 		text-align: center;
-		margin-bottom: 10px;
+		margin-bottom: 16px;
 	}
 
 	.next-holiday strong {
 		color: #C41E3A;
+	}
+
+	.holiday-link {
+		background: none;
+		border: none;
+		font: inherit;
+		color: #C41E3A;
+		font-weight: 700;
+		cursor: pointer;
+		padding: 0;
+		text-decoration: underline;
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+		text-decoration-color: rgba(196, 30, 58, 0.3);
+		transition: text-decoration-color 0.15s;
+	}
+
+	.holiday-link:hover {
+		text-decoration-color: #C41E3A;
 	}
 
 	.next-holiday.is-today {
@@ -446,7 +470,7 @@
 		.next-holiday {
 			font-size: 1.8rem;
 			font-weight: 500;
-			margin-bottom: 12px;
+			margin-bottom: 20px;
 		}
 
 		.next-holiday.is-today {
