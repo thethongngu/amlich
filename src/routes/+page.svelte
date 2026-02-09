@@ -21,6 +21,8 @@
 	let selectedYear = $state(today.solarYear);
 	let selected = $derived(getDateInfo(selectedDay, selectedMonth, selectedYear));
 
+	let showBoth = $state(true);
+
 	function prevMonth() {
 		if (calMonth === 1) {
 			calMonth = 12;
@@ -77,23 +79,51 @@
 				{/if}
 			</div>
 		{/if}
-		<section class="hero">
-			<div class="hero-top">
-				<span class="dow">{selected.dayOfWeek}</span>
-				<span class="solar-date"> Dương lịch: {pad(selected.solarDay)}/{pad(selected.solarMonth)}/{selected.solarYear}</span>
-			</div>
+		<div class="hero-cards">
+			<section class="hero solar-card" class:hidden={!showBoth}>
+				<div class="hero-top">
+					<span class="dow">{selected.dayOfWeek}</span>
+					<span class="solar-date">{pad(selected.solarDay)}/{pad(selected.solarMonth)}/{selected.solarYear}</span>
+				</div>
 
-			<div class="lunar-day">{selected.lunarDay}</div>
+				<div class="big-day solar-big-day">{selected.solarDay}</div>
 
-			<div class="lunar-info">
-				Tháng {LUNAR_MONTH_NAMES[selected.lunarMonth]}{selected.lunarLeap ? ' (Nhuận)' : ''}
-			</div>
-			<div class="lunar-year">Năm {selected.lunarYearName} — {selected.lunarYear}</div>
+				<div class="card-info">Tháng {selected.solarMonth}, {selected.solarYear}</div>
 
-			{#if selected.holiday}
-				<div class="holiday">{selected.holiday}</div>
-			{/if}
-		</section>
+				{#if selected.holiday && selected.holidayType === 'solar'}
+					<div class="holiday solar-holiday">{selected.holiday}</div>
+				{/if}
+			</section>
+
+			<section class="hero lunar-card">
+				{#if !showBoth}
+					<div class="hero-top">
+						<span class="dow">{selected.dayOfWeek}</span>
+						<span class="solar-date">Âm lịch: {pad(selected.lunarDay)}/{pad(selected.lunarMonth)}</span>
+					</div>
+				{:else}
+					<div class="hero-top">
+						<span class="lunar-label">Âm lịch</span>
+					</div>
+				{/if}
+
+				<div class="big-day lunar-big-day">{selected.lunarDay}</div>
+
+				<div class="card-info">
+					Tháng {LUNAR_MONTH_NAMES[selected.lunarMonth]}{selected.lunarLeap ? ' (Nhuận)' : ''}
+				</div>
+				<div class="card-sub">Năm {selected.lunarYearName}</div>
+
+				{#if selected.holiday && selected.holidayType === 'lunar'}
+					<div class="holiday">{selected.holiday}</div>
+				{/if}
+			</section>
+		</div>
+
+		<label class="toggle-row">
+			<input type="checkbox" bind:checked={showBoth} />
+			<span>Hiển thị cả hai</span>
+		</label>
 	</div>
 
 	<section class="cal">
@@ -155,65 +185,109 @@
 		padding: 16px 20px 48px;
 	}
 
-	/* ── Hero (Today card) ── */
+	/* ── Hero Cards ── */
+
+	.hero-cards {
+		display: flex;
+		gap: 10px;
+	}
 
 	.hero {
+		flex: 1;
 		text-align: center;
-		padding: 28px 16px 32px;
+		padding: 20px 12px 24px;
 		background: #fff;
 		border-radius: 20px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+		min-width: 0;
+	}
+
+	.hero.hidden {
+		display: none;
 	}
 
 	.hero-top {
 		display: flex;
 		justify-content: space-between;
 		align-items: baseline;
-		margin-bottom: 8px;
+		margin-bottom: 4px;
 	}
 
 	.dow {
-		font-size: 1.1rem;
+		font-size: 0.85rem;
 		font-weight: 600;
 		color: #1C1917;
 	}
 
 	.solar-date {
-		font-size: 1rem;
+		font-size: 0.8rem;
 		color: #78716C;
 		font-weight: 500;
 	}
 
-	.lunar-day {
-		font-size: 5.5rem;
+	.lunar-label {
+		font-size: 0.8rem;
+		color: #78716C;
+		font-weight: 500;
+	}
+
+	.big-day {
+		font-size: 4.5rem;
 		font-weight: 800;
-		color: #C41E3A;
 		line-height: 1;
 		margin: 4px 0 8px;
 		letter-spacing: -0.03em;
 	}
 
-	.lunar-info {
-		font-size: 1.3rem;
+	.solar-big-day {
+		color: #1C1917;
+	}
+
+	.lunar-big-day {
+		color: #C41E3A;
+	}
+
+	.card-info {
+		font-size: 1rem;
 		font-weight: 600;
 		color: #1C1917;
 	}
 
-	.lunar-year {
-		font-size: 1rem;
+	.card-sub {
+		font-size: 0.85rem;
 		color: #78716C;
-		margin-top: 4px;
+		margin-top: 2px;
 	}
 
 	.holiday {
 		display: inline-block;
-		font-size: 1.05rem;
+		font-size: 0.85rem;
 		color: #C41E3A;
 		font-weight: 600;
-		margin-top: 16px;
-		padding: 6px 16px;
+		margin-top: 12px;
+		padding: 4px 12px;
 		background: #FEF2F2;
 		border-radius: 20px;
+	}
+
+	.solar-holiday {
+		color: #1C1917;
+		background: #F5F5F4;
+	}
+
+	.toggle-row {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		margin-top: 12px;
+		font-size: 0.85rem;
+		color: #78716C;
+		cursor: pointer;
+	}
+
+	.toggle-row input[type="checkbox"] {
+		accent-color: #C41E3A;
 	}
 
 	.today-col {
@@ -507,35 +581,35 @@
 		}
 
 		.hero {
-			padding: 36px 32px;
+			padding: 28px 20px 32px;
 		}
 
 		.dow {
-			font-size: 1.1rem;
-		}
-
-		.solar-date {
 			font-size: 0.95rem;
 		}
 
-		.lunar-day {
-			font-size: 7rem;
+		.solar-date {
+			font-size: 0.85rem;
+		}
+
+		.big-day {
+			font-size: 5.5rem;
 			margin: 8px 0 12px;
 		}
 
-		.lunar-info {
-			font-size: 1.6rem;
+		.card-info {
+			font-size: 1.15rem;
 		}
 
-		.lunar-year {
-			font-size: 1.15rem;
-			margin-top: 6px;
+		.card-sub {
+			font-size: 0.95rem;
+			margin-top: 4px;
 		}
 
 		.holiday {
-			font-size: 1.15rem;
-			margin-top: 20px;
-			padding: 8px 20px;
+			font-size: 0.95rem;
+			margin-top: 16px;
+			padding: 6px 16px;
 		}
 
 		.next-holiday {

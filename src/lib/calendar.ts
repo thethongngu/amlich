@@ -238,13 +238,14 @@ const SOLAR_HOLIDAYS: HolidayDef[] = [
 interface HolidayMatch {
 	name: string;
 	offWork: boolean;
+	type: 'solar' | 'lunar';
 }
 
 function findHoliday(lunarDay: number, lunarMonth: number, solarDay: number, solarMonth: number): HolidayMatch | undefined {
 	const lunar = LUNAR_HOLIDAYS.find(h => h.day === lunarDay && h.month === lunarMonth);
-	if (lunar) return { name: lunar.name, offWork: lunar.offWork };
+	if (lunar) return { name: lunar.name, offWork: lunar.offWork, type: 'lunar' };
 	const solar = SOLAR_HOLIDAYS.find(h => h.day === solarDay && h.month === solarMonth);
-	if (solar) return { name: solar.name, offWork: solar.offWork };
+	if (solar) return { name: solar.name, offWork: solar.offWork, type: 'solar' };
 	return undefined;
 }
 
@@ -261,6 +262,7 @@ export interface TodayInfo {
 	lunarYearName: string;
 	lunarLeap: boolean;
 	holiday?: string;
+	holidayType?: 'solar' | 'lunar';
 	daysUntilTet: number;
 }
 
@@ -282,6 +284,8 @@ export function getDateInfo(d: number, m: number, y: number): TodayInfo {
 		}
 	}
 
+	const holidayMatch = findHoliday(lunarDay, lunarMonth, d, m);
+
 	return {
 		dayOfWeek: DAY_NAMES_FULL[dow],
 		solarDay: d,
@@ -292,7 +296,8 @@ export function getDateInfo(d: number, m: number, y: number): TodayInfo {
 		lunarYear,
 		lunarYearName: getCanChiYear(lunarYear),
 		lunarLeap: lunarLeap === 1,
-		holiday: findHoliday(lunarDay, lunarMonth, d, m)?.name,
+		holiday: holidayMatch?.name,
+		holidayType: holidayMatch?.type,
 		daysUntilTet,
 	};
 }
