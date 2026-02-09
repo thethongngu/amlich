@@ -42,24 +42,35 @@
 </script>
 
 <div class="page">
-	<section class="hero">
-		<div class="dates">
-			<span class="lbl">Âm lịch:</span>
-			<span class="date-val lunar">{pad(today.lunarDay)}/{pad(today.lunarMonth)}/{today.lunarYear}</span>
-			<span class="lbl">Dương lịch:</span>
-			<span class="date-val">{pad(today.solarDay)}/{pad(today.solarMonth)}/{today.solarYear}</span>
-		</div>
-
-		{#if today.holiday}
-			<p class="holiday">Hôm nay là {today.holiday}</p>
+	<div class="today-col">
+		{#if holidays.length > 0}
+			{@const next = holidays[0]}
+			<div class="next-holiday" class:is-today={next.daysUntil === 0}>
+				{#if next.daysUntil === 0}
+					Hôm nay là <strong>{next.name}</strong>
+				{:else}
+					Còn <strong>{next.daysUntil} ngày</strong> đến {next.name}
+				{/if}
+			</div>
 		{/if}
+		<section class="hero">
+			<div class="hero-top">
+				<span class="dow">{today.dayOfWeek}</span>
+				<span class="solar-date">{pad(today.solarDay)}/{pad(today.solarMonth)}/{today.solarYear}</span>
+			</div>
 
-		{#if today.daysUntilTet > 0}
-			<p class="tet-countdown">Còn <strong>{today.daysUntilTet} ngày</strong> đến Tết</p>
-		{:else if today.daysUntilTet === 0}
-			<p class="tet-countdown now">Chúc Mừng Năm Mới!</p>
-		{/if}
-	</section>
+			<div class="lunar-day">{today.lunarDay}</div>
+
+			<div class="lunar-info">
+				Tháng {LUNAR_MONTH_NAMES[today.lunarMonth]}{today.lunarLeap ? ' (Nhuận)' : ''}
+			</div>
+			<div class="lunar-year">Năm {today.lunarYearName} — {today.lunarYear}</div>
+
+			{#if today.holiday}
+				<div class="holiday">{today.holiday}</div>
+			{/if}
+		</section>
+	</div>
 
 	<section class="cal">
 		<div class="cal-header">
@@ -117,61 +128,88 @@
 		padding: 16px 20px 48px;
 	}
 
-	/* ── Hero ── */
+	/* ── Hero (Today card) ── */
 
 	.hero {
 		text-align: center;
-		padding: 32px 0 36px;
+		padding: 28px 16px 32px;
+		background: #fff;
+		border-radius: 20px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 	}
 
-	.dates {
-		display: grid;
-		grid-template-columns: auto auto;
-		gap: 10px 14px;
-		justify-content: center;
+	.hero-top {
+		display: flex;
+		justify-content: space-between;
 		align-items: baseline;
+		margin-bottom: 8px;
 	}
 
-	.lbl {
-		font-size: 0.9rem;
-		color: #78716C;
-		text-align: right;
-	}
-
-	.date-val {
-		font-size: 1.15rem;
+	.dow {
+		font-size: 1.1rem;
+		font-weight: 600;
 		color: #1C1917;
-		font-weight: 500;
-		text-align: left;
 	}
 
-	.date-val.lunar {
-		font-size: 1.4rem;
-		font-weight: 700;
+	.solar-date {
+		font-size: 1rem;
+		color: #78716C;
+		font-weight: 500;
+	}
+
+	.lunar-day {
+		font-size: 5.5rem;
+		font-weight: 800;
 		color: #C41E3A;
+		line-height: 1;
+		margin: 4px 0 8px;
+		letter-spacing: -0.03em;
+	}
+
+	.lunar-info {
+		font-size: 1.3rem;
+		font-weight: 600;
+		color: #1C1917;
+	}
+
+	.lunar-year {
+		font-size: 1rem;
+		color: #78716C;
+		margin-top: 4px;
 	}
 
 	.holiday {
+		display: inline-block;
 		font-size: 1.05rem;
 		color: #C41E3A;
-		font-weight: 500;
-		margin: 16px 0 0;
+		font-weight: 600;
+		margin-top: 16px;
+		padding: 6px 16px;
+		background: #FEF2F2;
+		border-radius: 20px;
 	}
 
-	.tet-countdown {
-		font-size: 1rem;
+	.today-col {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.next-holiday {
+		font-size: 1.3rem;
 		color: #57534E;
-		margin: 10px 0 0;
+		text-align: center;
+		margin-bottom: 10px;
 	}
 
-	.tet-countdown strong {
+	.next-holiday strong {
 		color: #C41E3A;
 	}
 
-	.tet-countdown.now {
+	.next-holiday.is-today {
 		color: #C41E3A;
 		font-weight: 700;
-		font-size: 1.15rem;
+		font-size: 1.5rem;
 	}
 
 	/* ── Calendar ── */
@@ -181,6 +219,7 @@
 		border-radius: 16px;
 		padding: 18px;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+		margin-top: 16px;
 	}
 
 	.cal-header {
@@ -225,6 +264,8 @@
 		background: none;
 		cursor: pointer;
 		font-size: 1.2rem;
+		line-height: 1;
+		padding: 0;
 		color: #57534E;
 		font-family: inherit;
 		transition: background 0.15s;
@@ -364,49 +405,65 @@
 			align-content: center;
 		}
 
-		.hero {
+		.today-col {
 			grid-column: 1;
 			grid-row: 1 / -1;
 			align-self: center;
-			padding: 0;
+		}
+
+		.hero {
+			padding: 36px 28px;
+		}
+
+		.dow {
+			font-size: 1.3rem;
+		}
+
+		.solar-date {
+			font-size: 1.15rem;
+		}
+
+		.lunar-day {
+			font-size: 7.5rem;
+			margin: 8px 0 12px;
+		}
+
+		.lunar-info {
+			font-size: 1.6rem;
+		}
+
+		.lunar-year {
+			font-size: 1.15rem;
+			margin-top: 6px;
+		}
+
+		.holiday {
+			font-size: 1.15rem;
+			margin-top: 20px;
+			padding: 8px 20px;
+		}
+
+		.next-holiday {
+			font-size: 1.8rem;
+			font-weight: 500;
+			margin-bottom: 12px;
+		}
+
+		.next-holiday.is-today {
+			font-size: 2.2rem;
 		}
 
 		.cal {
 			grid-column: 2;
 			grid-row: 1;
 			padding: 28px;
+			margin-top: 0;
 		}
 
 		.upcoming {
 			grid-column: 2;
 			grid-row: 2;
 			padding: 0 4px;
-		}
-
-		.dates {
-			gap: 12px 18px;
-		}
-
-		.lbl {
-			font-size: 1.05rem;
-		}
-
-		.date-val {
-			font-size: 1.35rem;
-		}
-
-		.date-val.lunar {
-			font-size: 1.7rem;
-		}
-
-		.holiday {
-			font-size: 1.2rem;
-			margin-top: 20px;
-		}
-
-		.tet-countdown {
-			font-size: 1.15rem;
-			margin-top: 12px;
 		}
 
 		.cal-title {
