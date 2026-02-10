@@ -65,6 +65,18 @@
 		selectDate(day, month, year);
 	}
 
+	let showMonthPicker = $state(false);
+
+	function goToMonth(month: number) {
+		calMonth = month;
+		selectDate(1, month, calYear);
+		showMonthPicker = false;
+	}
+
+	function toggleMonthPicker() {
+		showMonthPicker = !showMonthPicker;
+	}
+
 	const isCurrentMonth = $derived(calMonth === today.solarMonth && calYear === today.solarYear);
 	const isSelectedToday = $derived(
 		selectedDay === today.solarDay && selectedMonth === today.solarMonth && selectedYear === today.solarYear
@@ -119,9 +131,24 @@
 	<section class="cal">
 		<div class="cal-header">
 			<button class="nav-btn" onclick={prevMonth} aria-label="Tháng trước">&lsaquo;</button>
-			<button class="cal-title" class:muted={isCurrentMonth} onclick={goToday}>
-				Tháng {calMonth}, {calYear}
-			</button>
+			<div class="cal-title-wrap">
+				<button class="cal-title" onclick={toggleMonthPicker}>
+					Tháng {calMonth}, {calYear}
+				</button>
+				{#if showMonthPicker}
+				<div class="month-picker">
+					{#each Array.from({length: 12}, (_, i) => i + 1) as m}
+						<button
+							class="month-btn"
+							class:active={m === calMonth}
+							onclick={() => goToMonth(m)}
+						>
+							{m}
+						</button>
+					{/each}
+				</div>
+				{/if}
+			</div>
 			<button class="nav-btn" onclick={nextMonth} aria-label="Tháng sau">&rsaquo;</button>
 		</div>
 		<div class="grid">
@@ -326,6 +353,10 @@
 		margin-bottom: 14px;
 	}
 
+	.cal-title-wrap {
+		position: relative;
+	}
+
 	.cal-title {
 		font-size: 0.95rem;
 		font-weight: 600;
@@ -342,12 +373,45 @@
 		background: #F5F5F4;
 	}
 
-	.cal-title.muted {
-		cursor: default;
+
+	.month-picker {
+		display: grid;
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		margin-top: 4px;
+		background: #fff;
+		border-radius: 12px;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+		padding: 8px;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 4px;
+		z-index: 10;
 	}
 
-	.cal-title.muted:hover {
+	.month-btn {
+		width: 40px;
+		height: 36px;
+		border: none;
 		background: none;
+		border-radius: 8px;
+		font-family: inherit;
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: #57534E;
+		cursor: pointer;
+		transition: background 0.1s;
+	}
+
+	.month-btn:hover {
+		background: #F5F5F4;
+	}
+
+	.month-btn.active {
+		background: #C41E3A;
+		color: #fff;
+		font-weight: 600;
 	}
 
 	.nav-btn {
