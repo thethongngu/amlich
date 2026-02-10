@@ -183,7 +183,7 @@
 	.page {
 		max-width: 420px;
 		margin: 0 auto;
-		padding: 16px 20px 24px;
+		padding: 32px 20px 24px;
 	}
 
 	/* ── Hero Cards ── */
@@ -494,10 +494,9 @@
 		cursor: pointer;
 		padding: 0;
 		transition: color 0.15s;
-		position: absolute;
-		bottom: 0;
-		left: 50%;
-		transform: translateX(-50%);
+		display: block;
+		width: 100%;
+		text-align: center;
 	}
 
 	.back-today:hover {
