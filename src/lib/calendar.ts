@@ -222,6 +222,10 @@ interface HolidayDef {
 
 const LUNAR_HOLIDAYS: HolidayDef[] = [
 	{ name: 'Cúng ông Táo', day: 23, month: 12, offWork: false },
+	{ name: '27 Tết', day: 27, month: 12, offWork: true },
+	{ name: '28 Tết', day: 28, month: 12, offWork: true },
+	{ name: '29 Tết', day: 29, month: 12, offWork: true },
+	{ name: '30 Tết', day: 30, month: 12, offWork: true },
 	{ name: 'Tết Nguyên Đán', day: 1, month: 1, offWork: true },
 	{ name: 'Mùng 2 Tết', day: 2, month: 1, offWork: true },
 	{ name: 'Mùng 3 Tết', day: 3, month: 1, offWork: true },
@@ -388,6 +392,9 @@ export function getUpcomingHolidays(): UpcomingHoliday[] {
 		for (const yr of [currentLunarYear, currentLunarYear + 1]) {
 			const solar = convertLunar2Solar(h.day, h.month, yr, 0, TIMEZONE);
 			if (solar[0] === 0) continue;
+			// Validate round-trip (e.g., 30 Tết doesn't exist in years with 29-day month 12)
+			const [checkDay, checkMonth] = convertSolar2Lunar(solar[0], solar[1], solar[2], TIMEZONE);
+			if (checkDay !== h.day || checkMonth !== h.month) continue;
 			const jd = jdFromDate(solar[0], solar[1], solar[2]);
 			if (jd >= todayJd) {
 				results.push({
