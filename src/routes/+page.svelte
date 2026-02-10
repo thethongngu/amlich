@@ -96,9 +96,9 @@
 		{:else if !isSelectedToday && isSelectedWeekend}
 			<span class="special-day">Cuối tuần</span>
 		{:else if !isSelectedToday}
-			<span class="normal-day">Ngày bình thường!</span>
+			<span class="normal-day">Ngày bình thường</span>
 		{:else if nextHoliday && nextHoliday.daysUntil === 0}
-			<span class="today-label">Hôm nay là </span> <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
+			<span class="today-label">Hôm nay là </span> <span class="special-day">{nextHoliday.name}</span>
 		{:else if nextHoliday}
 			Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
 		{/if}
