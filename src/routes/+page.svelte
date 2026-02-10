@@ -69,32 +69,35 @@
 	const isSelectedToday = $derived(
 		selectedDay === today.solarDay && selectedMonth === today.solarMonth && selectedYear === today.solarYear
 	);
+	const isSelectedWeekend = $derived(
+		selected.dayOfWeek === 'Thứ Bảy' || selected.dayOfWeek === 'Chủ Nhật'
+	);
 </script>
 
 <div class="page">
-	<div class="today-col">
-		{#if nextHoliday}
-			<div class="next-holiday" class:is-today={nextHoliday.daysUntil === 0}>
-				{#if !isSelectedToday}
-					<button class="back-today" onclick={goToday}>&larr; Quay về hôm nay</button>
-				{:else if nextHoliday.daysUntil === 0}
-					<span class="today-label">Hôm nay là </span> <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
-				{:else}
-					Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
-				{/if}
-			</div>
+	<div class="next-holiday" class:is-today={nextHoliday?.daysUntil === 0 && isSelectedToday}>
+		{#if !isSelectedToday}
+			<button class="back-today" onclick={goToday}>&larr;</button>
 		{/if}
+		{#if !isSelectedToday && selected.holiday}
+			<span class="special-day">{selected.holiday}</span>
+		{:else if !isSelectedToday && isSelectedWeekend}
+			<span class="special-day">Cuối tuần</span>
+		{:else if !isSelectedToday}
+			<span class="normal-day">Ngày bình thường!</span>
+		{:else if nextHoliday && nextHoliday.daysUntil === 0}
+			<span class="today-label">Hôm nay là </span> <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
+		{:else if nextHoliday}
+			Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến <button class="holiday-link" onclick={() => goToHoliday(nextHoliday.solarDay, nextHoliday.solarMonth, nextHoliday.solarYear)}>{nextHoliday.name}</button>
+		{/if}
+	</div>
+	<div class="today-col">
 		<div class="hero-cards">
 			<section class="hero solar-card" class:hidden={!showBoth}>
 				<div class="card-title">Dương lịch</div>
 				<div class="big-day solar-big-day">{selected.solarDay}</div>
 				<div class="card-info">Tháng {selected.solarMonth}</div>
 				<div class="card-sub">{selected.solarYear}</div>
-				<div class="holiday-slot">
-					{#if selected.holiday && selected.holidayType === 'solar'}
-						<div class="holiday solar-holiday">{selected.holiday}</div>
-					{/if}
-				</div>
 			</section>
 
 			<section class="hero lunar-card">
@@ -104,11 +107,6 @@
 					Tháng {LUNAR_MONTH_NAMES[selected.lunarMonth]}{selected.lunarLeap ? ' (Nhuận)' : ''}
 				</div>
 				<div class="card-sub">Năm {selected.lunarYearName}</div>
-				<div class="holiday-slot">
-					{#if selected.holiday && selected.holidayType === 'lunar'}
-						<div class="holiday">{selected.holiday}</div>
-					{/if}
-				</div>
 			</section>
 		</div>
 
@@ -245,28 +243,6 @@
 		margin-top: 2px;
 	}
 
-	.holiday-slot {
-		min-height: 36px;
-		display: flex;
-		align-items: center;
-		margin-top: auto;
-		padding-top: 8px;
-	}
-
-	.holiday {
-		display: inline-block;
-		font-size: 0.85rem;
-		color: #C41E3A;
-		font-weight: 600;
-		padding: 4px 12px;
-		background: #FEF2F2;
-		border-radius: 20px;
-	}
-
-	.solar-holiday {
-		color: #2563EB;
-		background: #EFF6FF;
-	}
 
 	.toggle-row {
 		display: flex;
@@ -290,12 +266,16 @@
 	}
 
 	.next-holiday {
-		font-size: 1.3rem;
+		font-size: 1.5rem;
+		font-weight: 700;
 		color: #57534E;
 		text-align: center;
 		margin-bottom: 16px;
 		min-height: 2.4em;
-		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
 	}
 
 	.next-holiday strong {
@@ -322,8 +302,6 @@
 	}
 
 	.next-holiday.is-today {
-		font-weight: 700;
-		font-size: 1.5rem;
 		min-height: auto;
 	}
 
@@ -488,15 +466,25 @@
 		background: none;
 		border: none;
 		font-family: inherit;
-		font-size: 0.9rem;
-		font-weight: 500;
-		color: #78716C;
+		font-size: inherit;
+		font-weight: 300;
+		color: #D6D3D1;
 		cursor: pointer;
 		padding: 0;
 		transition: color 0.15s;
-		display: block;
-		width: 100%;
-		text-align: center;
+		white-space: nowrap;
+	}
+
+	.normal-day {
+		font-size: inherit;
+		font-weight: 700;
+		color: #1C1917;
+	}
+
+	.special-day {
+		font-size: inherit;
+		font-weight: 700;
+		color: #C41E3A;
 	}
 
 	.back-today:hover {
@@ -545,12 +533,12 @@
 	}
 
 	.h-name {
-		font-size: 0.9rem;
+		font-size: 0.8rem;
 		font-weight: 500;
 	}
 
 	.h-count {
-		font-size: 0.95rem;
+		font-size: 0.8rem;
 		font-weight: 600;
 		color: #C41E3A;
 	}
@@ -569,8 +557,8 @@
 			max-width: 960px;
 			display: grid;
 			grid-template-columns: 1fr 1fr;
-			grid-template-rows: auto 1fr;
-			gap: 32px;
+			grid-template-rows: auto auto 1fr;
+			gap: 32px 56px;
 			padding: 48px;
 			padding-bottom: 64px;
 			height: 100dvh;
@@ -583,13 +571,6 @@
 			bottom: 0;
 			left: 0;
 			right: 0;
-		}
-
-		.today-col {
-			grid-column: 1;
-			grid-row: 1 / -1;
-			align-self: start;
-			padding-top: 100px;
 		}
 
 		.hero {
@@ -610,32 +591,32 @@
 			margin-top: 4px;
 		}
 
-		.holiday {
-			font-size: 0.95rem;
-			padding: 6px 16px;
-		}
 
 		.next-holiday {
-			font-size: 1.8rem;
-			font-weight: 500;
-			margin-bottom: 20px;
-			min-height: 3em;
+			grid-column: 1 / -1;
+			grid-row: 1;
+			font-size: 2.2rem;
+			margin-bottom: 0;
+			min-height: auto;
 		}
 
-		.next-holiday.is-today {
-			font-size: 2.2rem;
+		.today-col {
+			grid-column: 1;
+			grid-row: 2;
+			align-self: start;
 		}
 
 		.cal {
 			grid-column: 2;
-			grid-row: 1;
+			grid-row: 2 / -1;
 			padding: 28px;
 			margin-top: 0;
+			align-self: start;
 		}
 
 		.upcoming {
-			grid-column: 2;
-			grid-row: 2;
+			grid-column: 1;
+			grid-row: 3;
 			padding: 0;
 			min-height: 0;
 			display: flex;
@@ -681,11 +662,11 @@
 		}
 
 		.h-name {
-			font-size: 1rem;
+			font-size: 0.85rem;
 		}
 
 		.h-count {
-			font-size: 1.1rem;
+			font-size: 0.85rem;
 		}
 
 		.row {
