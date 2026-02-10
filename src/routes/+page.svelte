@@ -84,6 +84,9 @@
 	const isSelectedWeekend = $derived(
 		selected.dayOfWeek === 'Thứ Bảy' || selected.dayOfWeek === 'Chủ Nhật'
 	);
+	const daysFromToday = $derived(
+		Math.round((new Date(selectedYear, selectedMonth - 1, selectedDay).getTime() - new Date(today.solarYear, today.solarMonth - 1, today.solarDay).getTime()) / 86400000)
+	);
 </script>
 
 <div class="page">
@@ -92,7 +95,13 @@
 			<button class="back-today" onclick={goToday}>&larr;</button>
 		{/if}
 		{#if !isSelectedToday && selected.holiday}
-			<span class="special-day">{selected.holiday}</span>
+			{#if daysFromToday > 0}
+				Còn <strong>{daysFromToday} ngày</strong> nữa đến <span class="special-day">{selected.holiday}</span>
+			{:else if daysFromToday < 0}
+				<span class="special-day">{selected.holiday}</span> <span>({Math.abs(daysFromToday)} ngày trước)</span>
+			{:else}
+				<span class="special-day">{selected.holiday}</span>
+			{/if}
 		{:else if !isSelectedToday && isSelectedWeekend}
 			<span class="special-day">Cuối tuần</span>
 		{:else if !isSelectedToday}
@@ -295,7 +304,6 @@
 	.next-holiday {
 		font-size: 1.5rem;
 		font-weight: 700;
-		color: #57534E;
 		text-align: center;
 		margin-bottom: 16px;
 		min-height: 2.4em;
@@ -307,6 +315,7 @@
 
 	.next-holiday strong {
 		color: #C41E3A;
+		font-weight: 700;
 	}
 
 	.holiday-link {
