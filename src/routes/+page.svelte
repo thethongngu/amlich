@@ -476,6 +476,7 @@
 		padding: 0;
 		cursor: pointer;
 		font-family: inherit;
+		color: #1C1917;
 		transition: background 0.1s;
 	}
 
@@ -593,6 +594,7 @@
 		border-top: none;
 		cursor: pointer;
 		font-family: inherit;
+		color: #1C1917;
 		border-radius: 8px;
 		transition: background 0.15s;
 	}
