@@ -89,7 +89,8 @@
 	);
 </script>
 
-<div class="page">
+<h1 class="sr-only">Âm Lịch Hôm Nay - Lịch Âm Dương, Ngày Lễ Việt Nam</h1>
+<main class="page">
 	<div class="next-holiday" class:is-today={nextHoliday?.daysUntil === 0 && isSelectedToday}>
 		{#if !isSelectedToday}
 			<button class="back-today" onclick={goToday}>&larr;</button>
@@ -174,6 +175,7 @@
 					class:is-holiday={day.isOffWork && !day.isToday}
 					class:is-weekend={day.isWeekend && !day.isToday}
 					disabled={!day.isCurrentMonth}
+					aria-label={day.isCurrentMonth ? `Ngày ${day.solarDay} tháng ${calMonth}, âm lịch ${day.lunarDay}/${day.lunarMonth}${day.holiday ? ', ' + day.holiday : ''}` : undefined}
 					onclick={() => selectDate(day.solarDay, calMonth, calYear)}
 				>
 					{#if day.isCurrentMonth}
@@ -202,7 +204,7 @@
 			</div>
 		</section>
 	{/if}
-</div>
+</main>
 
 <footer class="footer">
 	<span>by <a href="https://github.com/thethongngu" target="_blank" rel="noopener">thethongngu</a></span>
@@ -212,6 +214,18 @@
 </footer>
 
 <style>
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
 	/* ── Mobile-first base ── */
 
 	.page {

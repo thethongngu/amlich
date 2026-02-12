@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://lichngayle.xyz/sitemap.xml
+Sitemap: https://amlich.xyz/sitemap.xml

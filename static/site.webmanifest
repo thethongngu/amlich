@@ -1,6 +1,8 @@
 {
   "name": "Âm Lịch Hôm Nay",
   "short_name": "Âm Lịch",
+  "description": "Xem lịch âm dương, ngày lễ Việt Nam, lịch nghỉ lễ",
+  "start_url": "/",
   "icons": [
     {
       "src": "/favicon.ico",
@@ -10,5 +12,7 @@
   ],
   "theme_color": "#ffffff",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "standalone",
+  "lang": "vi",
+  "categories": ["utilities"]
 }
