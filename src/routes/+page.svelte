@@ -324,7 +324,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 12px;
+		flex-wrap: wrap;
+		gap: 4px 12px;
 	}
 
 	.next-holiday strong {
