@@ -1,7 +1,9 @@
 <script lang="ts">
+	import RedEnvelopes from '$lib/RedEnvelopes.svelte';
 	let { children } = $props();
 </script>
 
+<RedEnvelopes />
 {@render children()}
 
 <style>
