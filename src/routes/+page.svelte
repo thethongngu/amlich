@@ -89,7 +89,7 @@
 	);
 </script>
 
-<h1 class="sr-only">Âm Lịch Hôm Nay - Lịch Âm Dương, Ngày Lễ Việt Nam</h1>
+<h1 class="sr-only">Âm lịch - Ngày lễ</h1>
 <main class="page">
 	<div class="next-holiday" class:is-today={nextHoliday?.daysUntil === 0 && isSelectedToday}>
 		{#if !isSelectedToday}
@@ -207,7 +207,7 @@
 </main>
 
 <footer class="footer">
-	<span>by <a href="https://github.com/thethongngu" target="_blank" rel="noopener">thethongngu</a></span>
+	<span>by <a href="https://thethongngu.com" target="_blank" rel="noopener">thethongngu</a></span>
 	<span class="sep">·</span>
 	<!-- Replace YOUR_USERNAME below with your Ko-fi username -->
 	<a href="https://ko-fi.com/thethongngu" target="_blank" rel="noopener" class="kofi-link">Buy me a coffee</a>
