@@ -59,7 +59,7 @@
 		height: 100%;
 		pointer-events: none;
 		overflow: hidden;
-		z-index: 9999;
+		z-index: -1;
 	}
 
 	.falling-item {
