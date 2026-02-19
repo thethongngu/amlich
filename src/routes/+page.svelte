@@ -426,6 +426,7 @@
 		color: #57534E;
 		cursor: pointer;
 		transition: background 0.1s;
+		touch-action: manipulation;
 	}
 
 	.month-btn:hover {
@@ -454,6 +455,7 @@
 		color: #57534E;
 		font-family: inherit;
 		transition: background 0.15s;
+		touch-action: manipulation;
 	}
 
 	.nav-btn:hover {
@@ -493,6 +495,7 @@
 		font-family: inherit;
 		color: #1C1917;
 		transition: background 0.1s;
+		touch-action: manipulation;
 	}
 
 	.cell:not(.empty):not(.is-today):hover {
@@ -612,6 +615,7 @@
 		color: #1C1917;
 		border-radius: 8px;
 		transition: background 0.15s;
+		touch-action: manipulation;
 	}
 
 	.row:hover {
