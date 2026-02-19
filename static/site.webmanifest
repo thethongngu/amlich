@@ -1,9 +1,19 @@
 {
-  "name": "Âm Lịch Hôm Nay",
+  "name": "Âm lịch - Ngày lễ",
   "short_name": "Âm Lịch",
-  "description": "Xem lịch âm dương, ngày lễ Việt Nam, lịch nghỉ lễ",
+  "description": "Xem nhanh âm lịch hôm nay và các ngày lễ sắp tới.",
   "start_url": "/",
   "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
     {
       "src": "/lunar-calendar.svg",
       "sizes": "any",
