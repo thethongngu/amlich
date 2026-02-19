@@ -1,42 +1,11 @@
-# sv
+# amlich
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## Hướng dẫn thêm app vào màn hình chính trên iOS
+1. Mở trang web bằng Safari, bấm vào nút Share
+<img width="292" height="633" alt="IMG_0235" src="https://github.com/user-attachments/assets/1f132745-e84e-4d24-9390-191daf7d23f8" />
 
-## Creating a project
+2. Scroll xuống phía dưới và chọn "Add to Home screen"
+<img width="292" height="633" alt="IMG_0236" src="https://github.com/user-attachments/assets/e4907baf-11ee-48d3-8421-4b18f031657b" />
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv create --template minimal --types ts --install npm amlich
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+3. Bấm nút "Add" để thêm app vào màn hình chính 
+<img width="292" height="633" alt="IMG_0237" src="https://github.com/user-attachments/assets/0be7c4df-ddb5-4b05-9c09-786f1702e98c" />
