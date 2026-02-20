@@ -9,3 +9,7 @@
 
 3. Bấm nút "Add" để thêm app vào màn hình chính 
 <img width="292" height="633" alt="IMG_0237" src="https://github.com/user-attachments/assets/0be7c4df-ddb5-4b05-9c09-786f1702e98c" />
+
+## Hướng dẫn lưu app trên desktop với Chrome
+<img width="1455" height="1060" alt="image" src="https://github.com/user-attachments/assets/d1a5307b-7256-4a4e-a313-f1b2d9afe65f" />
+
