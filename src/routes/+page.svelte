@@ -181,7 +181,7 @@
 					{#if day.isCurrentMonth}
 						<span class="sd">{day.solarDay}</span>
 						<span class="ld" class:new-month={day.lunarDay === 1}>
-							{day.lunarDay === 1 ? `${day.lunarMonth}/1` : day.lunarDay}
+							{day.lunarDay === 1 ? `1/${day.lunarMonth}` : day.lunarDay}
 						</span>
 					{/if}
 				</button>
