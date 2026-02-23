@@ -239,17 +239,39 @@ const SOLAR_HOLIDAYS: HolidayDef[] = [
 	{ name: 'Quốc Khánh', day: 2, month: 9, offWork: true },
 ];
 
+// Year-specific holiday overrides (e.g., compensatory days off announced by government)
+// Each entry adds extra off-work days for a specific year, typically "nghỉ bù" when
+// a holiday falls on a weekend.
+interface YearOverride {
+	name: string;
+	day: number;
+	month: number; // solar month
+	offWork: boolean;
+}
+
+const YEAR_OVERRIDES: Record<number, YearOverride[]> = {
+	2026: [
+		// Giỗ Tổ Hùng Vương (10/3 AL) falls on Sunday 26/4, nghỉ bù Monday 27/4
+		{ name: 'Nghỉ bù Giỗ Tổ Hùng Vương', day: 27, month: 4, offWork: true },
+	],
+};
+
 interface HolidayMatch {
 	name: string;
 	offWork: boolean;
-	type: 'solar' | 'lunar';
+	type: 'solar' | 'lunar' | 'override';
 }
 
-function findHoliday(lunarDay: number, lunarMonth: number, solarDay: number, solarMonth: number): HolidayMatch | undefined {
+function findHoliday(lunarDay: number, lunarMonth: number, solarDay: number, solarMonth: number, solarYear?: number): HolidayMatch | undefined {
 	const lunar = LUNAR_HOLIDAYS.find(h => h.day === lunarDay && h.month === lunarMonth);
 	if (lunar) return { name: lunar.name, offWork: lunar.offWork, type: 'lunar' };
 	const solar = SOLAR_HOLIDAYS.find(h => h.day === solarDay && h.month === solarMonth);
 	if (solar) return { name: solar.name, offWork: solar.offWork, type: 'solar' };
+	if (solarYear) {
+		const overrides = YEAR_OVERRIDES[solarYear];
+		const override = overrides?.find(h => h.day === solarDay && h.month === solarMonth);
+		if (override) return { name: override.name, offWork: override.offWork, type: 'override' };
+	}
 	return undefined;
 }
 
@@ -266,7 +288,7 @@ export interface TodayInfo {
 	lunarYearName: string;
 	lunarLeap: boolean;
 	holiday?: string;
-	holidayType?: 'solar' | 'lunar';
+	holidayType?: 'solar' | 'lunar' | 'override';
 	daysUntilTet: number;
 }
 
@@ -288,7 +310,7 @@ export function getDateInfo(d: number, m: number, y: number): TodayInfo {
 		}
 	}
 
-	const holidayMatch = findHoliday(lunarDay, lunarMonth, d, m);
+	const holidayMatch = findHoliday(lunarDay, lunarMonth, d, m, y);
 
 	return {
 		dayOfWeek: DAY_NAMES_FULL[dow],
@@ -344,7 +366,7 @@ export function getCalendarDays(solarMonth: number, solarYear: number): Calendar
 	for (let d = 1; d <= daysInMonth; d++) {
 		const [lunarDay, lunarMonth] = convertSolar2Lunar(d, solarMonth, solarYear, TIMEZONE);
 		const dayOfWeek = (startOffset + d - 1) % 7;
-		const match = findHoliday(lunarDay, lunarMonth, d, solarMonth);
+		const match = findHoliday(lunarDay, lunarMonth, d, solarMonth, solarYear);
 		days.push({
 			solarDay: d,
 			lunarDay,
@@ -424,6 +446,25 @@ export function getUpcomingHolidays(): UpcomingHoliday[] {
 					daysUntil: jd - todayJd,
 				});
 				break;
+			}
+		}
+	}
+
+	// Year-specific overrides (e.g., compensatory days off)
+	for (const yr of [currentSolarYear, currentSolarYear + 1]) {
+		const overrides = YEAR_OVERRIDES[yr];
+		if (!overrides) continue;
+		for (const h of overrides) {
+			const jd = jdFromDate(h.day, h.month, yr);
+			if (jd >= todayJd) {
+				results.push({
+					name: h.name,
+					solarDate: `${pad(h.day)}/${pad(h.month)}`,
+					solarDay: h.day,
+					solarMonth: h.month,
+					solarYear: yr,
+					daysUntil: jd - todayJd,
+				});
 			}
 		}
 	}
