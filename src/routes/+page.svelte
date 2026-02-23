@@ -269,13 +269,13 @@
         rel="noopener"
         class="kofi-link">Ủng hộ ly cafe sữa (Momo)</a
     >
-    <span class="sep">·</span>
+    <!-- <span class="sep">·</span>
     <a
         href="https://ko-fi.com/thethongngu"
         target="_blank"
         rel="noopener"
         class="kofi-link">Buy me a coffee (Ko-fi)</a
-    >
+    > -->
 </footer>
 
 <style>
