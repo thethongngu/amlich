@@ -101,6 +101,8 @@
     const isSelectedWeekend = $derived(
         selected.dayOfWeek === "Thứ Bảy" || selected.dayOfWeek === "Chủ Nhật",
     );
+
+    const isThanTai = today.lunarMonth === 1 && today.lunarDay === 10;
 </script>
 
 <svelte:window onclick={handleClickOutside} />
@@ -130,14 +132,14 @@
     </div>
     <div class="today-col">
         <div class="hero-cards">
-            <section class="hero solar-card" class:hidden={!showBoth}>
+            <section class="hero solar-card" class:hidden={!showBoth} class:gold-shine={isThanTai}>
                 <div class="card-title">Dương lịch</div>
                 <div class="big-day solar-big-day">{selected.solarDay}</div>
                 <div class="card-info">Tháng {selected.solarMonth}</div>
                 <div class="card-sub">{selected.solarYear}</div>
             </section>
 
-            <section class="hero lunar-card">
+            <section class="hero lunar-card" class:gold-shine={isThanTai}>
                 <div class="card-title">Âm lịch</div>
                 <div class="big-day lunar-big-day">{selected.lunarDay}</div>
                 <div class="card-info">
@@ -155,7 +157,7 @@
         </label>
     </div>
 
-    <section class="cal">
+    <section class="cal" class:gold-shine={isThanTai}>
         <div class="cal-header">
             <div class="cal-title-wrap">
                 <button class="cal-title" onclick={toggleMonthPicker}>
@@ -706,6 +708,58 @@
         color: #fff;
         padding: 2px 12px;
         border-radius: 12px;
+    }
+
+    /* ── Gold Shine (Vía Thần Tài) ── */
+
+    .gold-shine {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #fffdf5 0%, #fff9e6 50%, #fffdf5 100%);
+        border: 1.5px solid #e8d48b;
+    }
+
+    .gold-shine::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(
+            105deg,
+            transparent 20%,
+            rgba(255, 215, 0, 0.12) 35%,
+            rgba(255, 223, 100, 0.28) 45%,
+            rgba(255, 255, 255, 0.4) 50%,
+            rgba(255, 223, 100, 0.28) 55%,
+            rgba(255, 215, 0, 0.12) 65%,
+            transparent 80%
+        );
+        animation: gold-sweep 3s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    @keyframes gold-sweep {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 200%;
+        }
+    }
+
+    .gold-shine.solar-card {
+        box-shadow: 0 2px 12px rgba(218, 165, 32, 0.15);
+    }
+
+    .gold-shine.lunar-card {
+        box-shadow: 0 2px 12px rgba(218, 165, 32, 0.15);
+    }
+
+    .gold-shine.cal {
+        box-shadow: 0 2px 12px rgba(218, 165, 32, 0.15);
     }
 
     /* ── Desktop ── */

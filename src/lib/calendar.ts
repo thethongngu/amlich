@@ -229,6 +229,7 @@ const LUNAR_HOLIDAYS: HolidayDef[] = [
 	{ name: 'Tết Nguyên Đán', day: 1, month: 1, offWork: true },
 	{ name: 'Mùng 2 Tết', day: 2, month: 1, offWork: true },
 	{ name: 'Mùng 3 Tết', day: 3, month: 1, offWork: true },
+	{ name: 'Vía Thần Tài', day: 10, month: 1, offWork: false },
 	{ name: 'Giỗ Tổ Hùng Vương', day: 10, month: 3, offWork: true },
 ];
 
