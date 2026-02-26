@@ -101,48 +101,16 @@
     const isSelectedWeekend = $derived(
         selected.dayOfWeek === "Thứ Bảy" || selected.dayOfWeek === "Chủ Nhật",
     );
-    const daysFromToday = $derived(
-        Math.round(
-            (new Date(selectedYear, selectedMonth - 1, selectedDay).getTime() -
-                new Date(
-                    today.solarYear,
-                    today.solarMonth - 1,
-                    today.solarDay,
-                ).getTime()) /
-                86400000,
-        ),
-    );
 </script>
 
 <svelte:window onclick={handleClickOutside} />
 
 <h1 class="sr-only">Âm lịch - Ngày lễ</h1>
 <main class="page">
-    <div
-        class="next-holiday"
-        class:is-today={nextHoliday?.daysUntil === 0 && isSelectedToday}
-    >
-        {#if !isSelectedToday}
-            <button class="back-today" onclick={goToday}>&larr;</button>
-        {/if}
-        {#if !isSelectedToday && selected.holiday}
-            {#if daysFromToday > 0}
-                Còn <strong>{daysFromToday} ngày</strong> nữa đến
-                <span class="special-day">{selected.holiday}</span>
-            {:else if daysFromToday < 0}
-                <span class="special-day">{selected.holiday}</span>
-                <span>({Math.abs(daysFromToday)} ngày trước)</span>
-            {:else}
-                <span class="special-day">{selected.holiday}</span>
-            {/if}
-        {:else if !isSelectedToday && isSelectedWeekend}
-            <span class="special-day">Cuối tuần</span>
-        {:else if !isSelectedToday}
-            <span class="normal-day">Ngày bình thường</span>
-        {:else if nextHoliday && nextHoliday.daysUntil === 0}
-            <span class="today-label">Hôm nay là </span>
+    <div class="next-holiday">
+        {#if isSelectedToday && nextHoliday && nextHoliday.daysUntil === 0}
             <span class="special-day">{nextHoliday.name}</span>
-        {:else if nextHoliday}
+        {:else if isSelectedToday && nextHoliday}
             Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến
             <button
                 class="holiday-link"
@@ -151,8 +119,13 @@
                         nextHoliday.solarDay,
                         nextHoliday.solarMonth,
                         nextHoliday.solarYear,
-                    )}>{nextHoliday.name}</button
-            >
+                    )}>{nextHoliday.name}</button>
+        {:else if selected.holiday}
+            <span class="special-day">{selected.holiday}</span>
+        {:else if isSelectedWeekend}
+            <span class="special-day">Cuối tuần</span>
+        {:else}
+            <span class="normal-day">Ngày bình thường</span>
         {/if}
     </div>
     <div class="today-col">
@@ -435,14 +408,6 @@
         text-decoration-color: #c41e3a;
     }
 
-    .next-holiday.is-today {
-        min-height: auto;
-    }
-
-    .today-label {
-        color: #000;
-    }
-
     /* ── Calendar ── */
 
     .cal {
@@ -670,19 +635,6 @@
         outline-offset: -2px;
     }
 
-    .back-today {
-        background: none;
-        border: none;
-        font-family: inherit;
-        font-size: inherit;
-        font-weight: 300;
-        color: #d6d3d1;
-        cursor: pointer;
-        padding: 0;
-        transition: color 0.15s;
-        white-space: nowrap;
-    }
-
     .normal-day {
         font-size: inherit;
         font-weight: 700;
@@ -692,10 +644,6 @@
     .special-day {
         font-size: inherit;
         font-weight: 700;
-        color: #c41e3a;
-    }
-
-    .back-today:hover {
         color: #c41e3a;
     }
 
