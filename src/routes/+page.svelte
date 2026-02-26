@@ -684,7 +684,7 @@
         height: 2em;
         object-fit: contain;
         z-index: 1;
-        transform: translateX(-50%) rotate(-20deg);
+        transform: translateX(-50%) rotate(-25deg);
         opacity: 0.85;
         pointer-events: none;
     }
@@ -906,7 +906,7 @@
         }
 
         .stamp {
-            left: -2em;
+            left: -2.4em;
             top: -120%;
             width: 6em;
             height: 3em;
