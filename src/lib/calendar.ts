@@ -290,6 +290,7 @@ export interface TodayInfo {
 	lunarLeap: boolean;
 	holiday?: string;
 	holidayType?: 'solar' | 'lunar' | 'override';
+	isOffWork: boolean;
 	daysUntilTet: number;
 }
 
@@ -325,6 +326,7 @@ export function getDateInfo(d: number, m: number, y: number): TodayInfo {
 		lunarLeap: lunarLeap === 1,
 		holiday: holidayMatch?.name,
 		holidayType: holidayMatch?.type,
+		isOffWork: holidayMatch?.offWork ?? false,
 		daysUntilTet,
 	};
 }

@@ -108,10 +108,17 @@
 <svelte:window onclick={handleClickOutside} />
 
 <h1 class="sr-only">Âm lịch - Ngày lễ</h1>
-<main class="page">
+<main class="page" class:gold-theme={isThanTai}>
     <div class="next-holiday">
         {#if isSelectedToday && nextHoliday && nextHoliday.daysUntil === 0}
-            <span class="special-day">{nextHoliday.name}</span>
+            <span class="holiday-title">
+                {#if selected.isOffWork}<img
+                        src="/duocnghi.png"
+                        alt="Được nghỉ"
+                        class="stamp"
+                    />{/if}
+                <span class="special-day">{nextHoliday.name}</span>
+            </span>
         {:else if isSelectedToday && nextHoliday}
             Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến
             <button
@@ -121,9 +128,17 @@
                         nextHoliday.solarDay,
                         nextHoliday.solarMonth,
                         nextHoliday.solarYear,
-                    )}>{nextHoliday.name}</button>
+                    )}>{nextHoliday.name}</button
+            >
         {:else if selected.holiday}
-            <span class="special-day">{selected.holiday}</span>
+            <span class="holiday-title">
+                {#if selected.isOffWork}<img
+                        src="/duocnghi.png"
+                        alt="Được nghỉ"
+                        class="stamp"
+                    />{/if}
+                <span class="special-day">{selected.holiday}</span>
+            </span>
         {:else if isSelectedWeekend}
             <span class="special-day">Cuối tuần</span>
         {:else}
@@ -132,7 +147,11 @@
     </div>
     <div class="today-col">
         <div class="hero-cards">
-            <section class="hero solar-card" class:hidden={!showBoth} class:gold-shine={isThanTai}>
+            <section
+                class="hero solar-card"
+                class:hidden={!showBoth}
+                class:gold-shine={isThanTai}
+            >
                 <div class="card-title">Dương lịch</div>
                 <div class="big-day solar-big-day">{selected.solarDay}</div>
                 <div class="card-info">Tháng {selected.solarMonth}</div>
@@ -182,13 +201,17 @@
                     class="go-today-btn"
                     class:active={!isCurrentMonth || !isSelectedToday}
                     onclick={goToday}
-                    aria-label="Quay về hôm nay"
-                >Hôm nay</button>
-                <button class="nav-btn" onclick={prevMonth} aria-label="Tháng trước"
-                    >&lsaquo;</button
+                    aria-label="Quay về hôm nay">Hôm nay</button
                 >
-                <button class="nav-btn" onclick={nextMonth} aria-label="Tháng sau"
-                    >&rsaquo;</button
+                <button
+                    class="nav-btn"
+                    onclick={prevMonth}
+                    aria-label="Tháng trước">&lsaquo;</button
+                >
+                <button
+                    class="nav-btn"
+                    onclick={nextMonth}
+                    aria-label="Tháng sau">&rsaquo;</button
                 >
             </div>
         </div>
@@ -250,7 +273,7 @@
     {/if}
 </main>
 
-<footer class="footer">
+<footer class="footer" class:gold-theme={isThanTai}>
     <span
         >by <a href="https://thethongngu.com" target="_blank" rel="noopener"
             >thethongngu</a
@@ -506,7 +529,10 @@
         font-size: 0.7rem;
         font-weight: 500;
         line-height: 1.4;
-        transition: color 0.15s, border-color 0.15s, background 0.15s;
+        transition:
+            color 0.15s,
+            border-color 0.15s,
+            background 0.15s;
         touch-action: manipulation;
         white-space: nowrap;
     }
@@ -643,6 +669,26 @@
         color: #1c1917;
     }
 
+    .holiday-title {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stamp {
+        position: absolute;
+        left: 50%;
+        top: 120%;
+        width: 4em;
+        height: 2em;
+        object-fit: contain;
+        z-index: 1;
+        transform: translateX(-50%) rotate(-20deg);
+        opacity: 0.85;
+        pointer-events: none;
+    }
+
     .special-day {
         font-size: inherit;
         font-weight: 700;
@@ -714,12 +760,17 @@
 
     .gold-shine {
         position: relative;
-        background: linear-gradient(135deg, #fffdf5 0%, #fff9e6 50%, #fffdf5 100%);
+        background: linear-gradient(
+            135deg,
+            #fffdf5 0%,
+            #fff9e6 50%,
+            #fffdf5 100%
+        );
         border: 1.5px solid #e8d48b;
     }
 
     .gold-shine::before {
-        content: '';
+        content: "";
         position: absolute;
         inset: 0;
         background: linear-gradient(
@@ -760,6 +811,84 @@
         box-shadow: 0 2px 12px rgba(218, 165, 32, 0.15);
     }
 
+    /* ── Gold Theme overrides (Vía Thần Tài) ── */
+
+    .gold-theme .special-day {
+        color: #b8860b;
+    }
+
+    .gold-theme .next-holiday strong {
+        color: #b8860b;
+    }
+
+    .gold-theme .holiday-link {
+        color: #b8860b;
+        text-decoration-color: rgba(184, 134, 11, 0.3);
+    }
+
+    .gold-theme .holiday-link:hover {
+        text-decoration-color: #b8860b;
+    }
+
+    .gold-theme .cell.is-today {
+        background: linear-gradient(135deg, #daa520, #f0c040);
+    }
+
+    .gold-theme .cell.is-today:hover {
+        background: linear-gradient(135deg, #c49520, #daa520);
+    }
+
+    .gold-theme .cell.is-selected:not(.is-today) {
+        outline-color: #daa520;
+    }
+
+    .gold-theme .cell.is-holiday {
+        background: #fff0c2;
+    }
+
+    .gold-theme .ld.new-month {
+        color: #b8860b;
+    }
+
+    .gold-theme .toggle-row input[type="checkbox"] {
+        accent-color: #daa520;
+    }
+
+    .gold-theme .go-today-btn.active {
+        color: #b8860b;
+        border-color: #b8860b;
+    }
+
+    .gold-theme .go-today-btn.active:hover {
+        background: #daa520;
+        color: #fff;
+    }
+
+    .gold-theme .month-btn.active {
+        background: #daa520;
+    }
+
+    .gold-theme .h-count {
+        color: #b8860b;
+    }
+
+    .gold-theme .h-count.h-today {
+        background: linear-gradient(135deg, #daa520, #f0c040);
+        color: #fff;
+    }
+
+    :global(body:has(.gold-theme)) {
+        background: #fdf8ec;
+    }
+
+    .footer.gold-theme .kofi-link {
+        color: #daa520 !important;
+    }
+
+    .footer.gold-theme .kofi-link:hover {
+        color: #b8860b !important;
+    }
+
     /* ── Desktop ── */
 
     @media (min-width: 768px) {
@@ -774,6 +903,13 @@
             height: 100dvh;
             box-sizing: border-box;
             align-content: start;
+        }
+
+        .stamp {
+            left: -2em;
+            top: -120%;
+            width: 6em;
+            height: 3em;
         }
 
         .footer {
