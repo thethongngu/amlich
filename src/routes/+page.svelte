@@ -81,6 +81,15 @@
         showMonthPicker = !showMonthPicker;
     }
 
+    function handleClickOutside(event: MouseEvent) {
+        if (showMonthPicker) {
+            const target = event.target as HTMLElement;
+            if (!target.closest(".cal-title-wrap")) {
+                showMonthPicker = false;
+            }
+        }
+    }
+
     const isCurrentMonth = $derived(
         calMonth === today.solarMonth && calYear === today.solarYear,
     );
@@ -104,6 +113,8 @@
         ),
     );
 </script>
+
+<svelte:window onclick={handleClickOutside} />
 
 <h1 class="sr-only">Âm lịch - Ngày lễ</h1>
 <main class="page">
@@ -173,49 +184,38 @@
 
     <section class="cal">
         <div class="cal-header">
-            <button class="nav-btn" onclick={prevMonth} aria-label="Tháng trước"
-                >&lsaquo;</button
-            >
-            <div class="cal-center">
+            <div class="cal-title-wrap">
+                <button class="cal-title" onclick={toggleMonthPicker}>
+                    Tháng {calMonth}, {calYear}
+                </button>
+                {#if showMonthPicker}
+                    <div class="month-picker">
+                        {#each Array.from({ length: 12 }, (_, i) => i + 1) as m}
+                            <button
+                                class="month-btn"
+                                class:active={m === calMonth}
+                                onclick={() => goToMonth(m)}
+                            >
+                                {m}
+                            </button>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
+            <div class="cal-controls">
                 <button
                     class="go-today-btn"
+                    class:active={!isCurrentMonth || !isSelectedToday}
                     onclick={goToday}
-                    title="Quay về hôm nay"
                     aria-label="Quay về hôm nay"
+                >Hôm nay</button>
+                <button class="nav-btn" onclick={prevMonth} aria-label="Tháng trước"
+                    >&lsaquo;</button
                 >
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <circle
-                            cx="9"
-                            cy="9"
-                            r="7.5"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                        />
-                        <circle cx="9" cy="9" r="3" fill="currentColor" />
-                    </svg>
-                </button>
-                <div class="cal-title-wrap">
-                    <button class="cal-title" onclick={toggleMonthPicker}>
-                        Tháng {calMonth}, {calYear}
-                    </button>
-                    {#if showMonthPicker}
-                        <div class="month-picker">
-                            {#each Array.from({ length: 12 }, (_, i) => i + 1) as m}
-                                <button
-                                    class="month-btn"
-                                    class:active={m === calMonth}
-                                    onclick={() => goToMonth(m)}
-                                >
-                                    {m}
-                                </button>
-                            {/each}
-                        </div>
-                    {/if}
-                </div>
+                <button class="nav-btn" onclick={nextMonth} aria-label="Tháng sau"
+                    >&rsaquo;</button
+                >
             </div>
-            <button class="nav-btn" onclick={nextMonth} aria-label="Tháng sau"
-                >&rsaquo;</button
-            >
         </div>
         <div class="grid">
             {#each DAY_NAMES_SHORT as name, i}
@@ -471,13 +471,20 @@
         border: none;
         cursor: pointer;
         color: #1c1917;
-        padding: 4px 12px;
+        padding: 4px 8px;
+        margin-left: -8px;
         border-radius: 8px;
         font-family: inherit;
     }
 
     .cal-title:hover {
         background: #f5f5f4;
+    }
+
+    .cal-controls {
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 
     .month-picker {
@@ -521,46 +528,47 @@
         font-weight: 600;
     }
 
-    .cal-center {
-        display: flex;
-        align-items: center;
-        gap: 0;
-    }
-
     .go-today-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        border: none;
+        border: 1px solid #e7e5e4;
+        border-radius: 6px;
         background: none;
-        cursor: pointer;
-        color: #a8a29e;
-        padding: 0;
-        transition: color 0.15s;
+        cursor: default;
+        color: #d6d3d1;
+        padding: 2px 8px;
+        font-family: inherit;
+        font-size: 0.7rem;
+        font-weight: 500;
+        line-height: 1.4;
+        transition: color 0.15s, border-color 0.15s, background 0.15s;
         touch-action: manipulation;
+        white-space: nowrap;
     }
 
-    .go-today-btn:hover {
+    .go-today-btn.active {
         color: #c41e3a;
+        border-color: #c41e3a;
+        cursor: pointer;
+    }
+
+    .go-today-btn.active:hover {
+        background: #c41e3a;
+        color: #fff;
     }
 
     .nav-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        border: 1px solid #e7e5e4;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: none;
         background: none;
         cursor: pointer;
         font-size: 1.2rem;
         line-height: 1;
         padding: 0;
-        color: #57534e;
+        color: #78716c;
         font-family: inherit;
         transition: background 0.15s;
         touch-action: manipulation;
@@ -836,8 +844,8 @@
         }
 
         .nav-btn {
-            width: 40px;
-            height: 40px;
+            width: 34px;
+            height: 34px;
             font-size: 1.3rem;
         }
 
