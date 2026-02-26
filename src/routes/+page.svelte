@@ -176,23 +176,42 @@
             <button class="nav-btn" onclick={prevMonth} aria-label="Tháng trước"
                 >&lsaquo;</button
             >
-            <div class="cal-title-wrap">
-                <button class="cal-title" onclick={toggleMonthPicker}>
-                    Tháng {calMonth}, {calYear}
+            <div class="cal-center">
+                <button
+                    class="go-today-btn"
+                    onclick={goToday}
+                    title="Quay về hôm nay"
+                    aria-label="Quay về hôm nay"
+                >
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <circle
+                            cx="9"
+                            cy="9"
+                            r="7.5"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                        />
+                        <circle cx="9" cy="9" r="3" fill="currentColor" />
+                    </svg>
                 </button>
-                {#if showMonthPicker}
-                    <div class="month-picker">
-                        {#each Array.from({ length: 12 }, (_, i) => i + 1) as m}
-                            <button
-                                class="month-btn"
-                                class:active={m === calMonth}
-                                onclick={() => goToMonth(m)}
-                            >
-                                {m}
-                            </button>
-                        {/each}
-                    </div>
-                {/if}
+                <div class="cal-title-wrap">
+                    <button class="cal-title" onclick={toggleMonthPicker}>
+                        Tháng {calMonth}, {calYear}
+                    </button>
+                    {#if showMonthPicker}
+                        <div class="month-picker">
+                            {#each Array.from({ length: 12 }, (_, i) => i + 1) as m}
+                                <button
+                                    class="month-btn"
+                                    class:active={m === calMonth}
+                                    onclick={() => goToMonth(m)}
+                                >
+                                    {m}
+                                </button>
+                            {/each}
+                        </div>
+                    {/if}
+                </div>
             </div>
             <button class="nav-btn" onclick={nextMonth} aria-label="Tháng sau"
                 >&rsaquo;</button
@@ -500,6 +519,32 @@
         background: #c41e3a;
         color: #fff;
         font-weight: 600;
+    }
+
+    .cal-center {
+        display: flex;
+        align-items: center;
+        gap: 0;
+    }
+
+    .go-today-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        background: none;
+        cursor: pointer;
+        color: #a8a29e;
+        padding: 0;
+        transition: color 0.15s;
+        touch-action: manipulation;
+    }
+
+    .go-today-btn:hover {
+        color: #c41e3a;
     }
 
     .nav-btn {
