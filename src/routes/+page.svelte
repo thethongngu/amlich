@@ -714,7 +714,6 @@
 
     .gold-shine {
         position: relative;
-        overflow: hidden;
         background: linear-gradient(135deg, #fffdf5 0%, #fff9e6 50%, #fffdf5 100%);
         border: 1.5px solid #e8d48b;
     }
@@ -722,10 +721,7 @@
     .gold-shine::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: -100%;
-        width: 60%;
-        height: 100%;
+        inset: 0;
         background: linear-gradient(
             105deg,
             transparent 20%,
@@ -736,17 +732,19 @@
             rgba(255, 215, 0, 0.12) 65%,
             transparent 80%
         );
+        background-size: 300% 100%;
         animation: gold-sweep 3s ease-in-out infinite;
         pointer-events: none;
         z-index: 1;
+        border-radius: inherit;
     }
 
     @keyframes gold-sweep {
         0% {
-            left: -100%;
+            background-position: 100% 0;
         }
         100% {
-            left: 200%;
+            background-position: -50% 0;
         }
     }
 
