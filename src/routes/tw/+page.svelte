@@ -2,42 +2,37 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import {
-        getTodayInfo,
-        getDateInfo,
-        getCalendarDays,
-        getUpcomingHolidays,
-        DAY_NAMES_SHORT,
-        LUNAR_MONTH_NAMES,
-    } from "$lib/calendar";
+        getTodayInfoTW,
+        getDateInfoTW,
+        getCalendarDaysTW,
+        getUpcomingHolidaysTW,
+    } from "$lib/calendar-tw";
+    import { DAY_NAMES_SHORT, LUNAR_MONTH_NAMES } from "$lib/calendar";
 
     const COUNTRY_KEY = "amlich-country";
 
     onMount(() => {
-        if (localStorage.getItem(COUNTRY_KEY) === "tw") {
-            goto("/tw", { replaceState: true });
-        } else {
-            localStorage.setItem(COUNTRY_KEY, "vn");
-        }
+        localStorage.setItem(COUNTRY_KEY, "tw");
     });
 
-    function switchToTW() {
-        localStorage.setItem(COUNTRY_KEY, "tw");
-        goto("/tw");
+    function switchToVN() {
+        localStorage.setItem(COUNTRY_KEY, "vn");
+        goto("/");
     }
 
-    const today = getTodayInfo();
-    const holidays = getUpcomingHolidays();
+    const today = getTodayInfoTW();
+    const holidays = getUpcomingHolidaysTW();
     const nextHoliday = holidays[0] ?? null;
 
     let calMonth = $state(today.solarMonth);
     let calYear = $state(today.solarYear);
-    let days = $derived(getCalendarDays(calMonth, calYear));
+    let days = $derived(getCalendarDaysTW(calMonth, calYear));
 
     let selectedDay = $state(today.solarDay);
     let selectedMonth = $state(today.solarMonth);
     let selectedYear = $state(today.solarYear);
     let selected = $derived(
-        getDateInfo(selectedDay, selectedMonth, selectedYear),
+        getDateInfoTW(selectedDay, selectedMonth, selectedYear),
     );
 
     const SHOW_BOTH_KEY = "amlich-show-both";
@@ -142,8 +137,8 @@
             <div class="setting-row">
                 <span class="setting-label">Quốc gia</span>
                 <div class="country-options">
-                    <button class="country-btn active" aria-label="Việt Nam">🇻🇳</button>
-                    <button class="country-btn" onclick={switchToTW} aria-label="Đài Loan">🇹🇼</button>
+                    <button class="country-btn" onclick={switchToVN} aria-label="Việt Nam">🇻🇳</button>
+                    <button class="country-btn active" aria-label="Đài Loan">🇹🇼</button>
                 </div>
             </div>
             <div class="settings-divider"></div>
@@ -155,7 +150,7 @@
     {/if}
 </div>
 
-<h1 class="sr-only">Âm lịch - Ngày lễ</h1>
+<h1 class="sr-only">Âm lịch Đài Loan - Ngày lễ</h1>
 <main class="page" class:gold-theme={isThanTai}>
     <div class="next-holiday">
         {#if isSelectedToday && nextHoliday && nextHoliday.daysUntil === 0}
@@ -165,10 +160,10 @@
                         alt="Được nghỉ"
                         class="stamp"
                     />{/if}
-                <span class="special-day">🇻🇳 {nextHoliday.name}</span>
+                <span class="special-day">🇹🇼 {nextHoliday.name}</span>
             </span>
         {:else if isSelectedToday && nextHoliday}
-            🇻🇳 Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến
+            🇹🇼 Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến
             <button
                 class="holiday-link"
                 onclick={() =>
@@ -185,12 +180,12 @@
                         alt="Được nghỉ"
                         class="stamp"
                     />{/if}
-                <span class="special-day">🇻🇳 {selected.holiday}</span>
+                <span class="special-day">🇹🇼 {selected.holiday}</span>
             </span>
         {:else if isSelectedWeekend}
-            <span class="special-day">🇻🇳 Cuối tuần</span>
+            <span class="special-day">🇹🇼 Cuối tuần</span>
         {:else}
-            <span class="normal-day">🇻🇳 Ngày bình thường</span>
+            <span class="normal-day">🇹🇼 Ngày bình thường</span>
         {/if}
     </div>
     <div class="today-col">
@@ -330,13 +325,6 @@
         rel="noopener"
         class="kofi-link">Ủng hộ ly cafe sữa (Momo)</a
     >
-    <!-- <span class="sep">·</span>
-    <a
-        href="https://ko-fi.com/thethongngu"
-        target="_blank"
-        rel="noopener"
-        class="kofi-link">Buy me a coffee (Ko-fi)</a
-    > -->
 </footer>
 
 <style>
