@@ -338,6 +338,8 @@ export function getTodayInfo(): TodayInfo {
 
 export interface CalendarDay {
 	solarDay: number;
+	solarMonth: number;
+	solarYear: number;
 	lunarDay: number;
 	lunarMonth: number;
 	isToday: boolean;
@@ -357,12 +359,26 @@ export function getCalendarDays(solarMonth: number, solarYear: number): Calendar
 	const daysInMonth = new Date(solarYear, solarMonth, 0).getDate();
 	const startOffset = (firstDay.getDay() + 6) % 7;
 
+	// Compute prev month info
+	const prevMonth = solarMonth === 1 ? 12 : solarMonth - 1;
+	const prevYear = solarMonth === 1 ? solarYear - 1 : solarYear;
+	const daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate();
+
+	// Compute next month info
+	const nextMonth = solarMonth === 12 ? 1 : solarMonth + 1;
+	const nextYear = solarMonth === 12 ? solarYear + 1 : solarYear;
+
 	const days: CalendarDay[] = [];
 
 	for (let i = 0; i < startOffset; i++) {
+		const d = daysInPrevMonth - startOffset + 1 + i;
+		const [lunarDay, lunarMonth] = convertSolar2Lunar(d, prevMonth, prevYear, TIMEZONE);
+		const dayOfWeek = i % 7;
 		days.push({
-			solarDay: 0, lunarDay: 0, lunarMonth: 0,
-			isToday: false, isCurrentMonth: false, isWeekend: false, isOffWork: false,
+			solarDay: d, solarMonth: prevMonth, solarYear: prevYear,
+			lunarDay, lunarMonth,
+			isToday: false, isCurrentMonth: false,
+			isWeekend: dayOfWeek === 5 || dayOfWeek === 6, isOffWork: false,
 		});
 	}
 
@@ -372,6 +388,8 @@ export function getCalendarDays(solarMonth: number, solarYear: number): Calendar
 		const match = findHoliday(lunarDay, lunarMonth, d, solarMonth, solarYear);
 		days.push({
 			solarDay: d,
+			solarMonth,
+			solarYear,
 			lunarDay,
 			lunarMonth,
 			isToday: d === todayDay && solarMonth === todayMonth && solarYear === todayYear,
@@ -383,10 +401,16 @@ export function getCalendarDays(solarMonth: number, solarYear: number): Calendar
 	}
 
 	// Pad to 42 cells (6 rows) so calendar height stays fixed
+	let nextDay = 1;
 	while (days.length < 42) {
+		const d = nextDay++;
+		const [lunarDay, lunarMonth] = convertSolar2Lunar(d, nextMonth, nextYear, TIMEZONE);
+		const dayOfWeek = (days.length) % 7;
 		days.push({
-			solarDay: 0, lunarDay: 0, lunarMonth: 0,
-			isToday: false, isCurrentMonth: false, isWeekend: false, isOffWork: false,
+			solarDay: d, solarMonth: nextMonth, solarYear: nextYear,
+			lunarDay, lunarMonth,
+			isToday: false, isCurrentMonth: false,
+			isWeekend: dayOfWeek === 5 || dayOfWeek === 6, isOffWork: false,
 		});
 	}
 

@@ -272,23 +272,18 @@
                         day.solarDay === selectedDay &&
                         calMonth === selectedMonth &&
                         calYear === selectedYear}
-                    class:empty={!day.isCurrentMonth}
+                    class:overflow={!day.isCurrentMonth}
                     class:is-holiday={day.isOffWork && !day.isToday}
                     class:is-weekend={day.isWeekend && !day.isToday}
-                    disabled={!day.isCurrentMonth}
-                    aria-label={day.isCurrentMonth
-                        ? `Ngày ${day.solarDay} tháng ${calMonth}, âm lịch ${day.lunarDay}/${day.lunarMonth}${day.holiday ? ", " + day.holiday : ""}`
-                        : undefined}
-                    onclick={() => selectDate(day.solarDay, calMonth, calYear)}
+                    aria-label={`Ngày ${day.solarDay} tháng ${day.solarMonth}, âm lịch ${day.lunarDay}/${day.lunarMonth}${day.holiday ? ", " + day.holiday : ""}`}
+                    onclick={() => { calMonth = day.solarMonth; calYear = day.solarYear; selectDate(day.solarDay, day.solarMonth, day.solarYear); }}
                 >
-                    {#if day.isCurrentMonth}
-                        <span class="sd">{day.solarDay}</span>
-                        <span class="ld" class:new-month={day.lunarDay === 1}>
-                            {day.lunarDay === 1
-                                ? `1/${day.lunarMonth}`
-                                : day.lunarDay}
-                        </span>
-                    {/if}
+                    <span class="sd">{day.solarDay}</span>
+                    <span class="ld" class:new-month={day.lunarDay === 1}>
+                        {day.lunarDay === 1
+                            ? `1/${day.lunarMonth}`
+                            : day.lunarDay}
+                    </span>
                 </button>
             {/each}
         </div>
@@ -734,7 +729,7 @@
         touch-action: manipulation;
     }
 
-    .cell:not(.empty):not(.is-today):hover {
+    .cell:not(.is-today):hover {
         background: #f5f5f4;
     }
 
@@ -742,8 +737,8 @@
         background: #a8162e;
     }
 
-    .cell.empty {
-        cursor: default;
+    .cell.overflow {
+        opacity: 0.35;
     }
 
     .sd {
