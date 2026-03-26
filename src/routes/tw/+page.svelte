@@ -45,6 +45,46 @@
         localStorage.setItem(SHOW_BOTH_KEY, String(showBoth));
     });
 
+    const COUNTDOWN_TYPE_KEY = "amlich-countdown-type";
+    let showMondays = $state(
+        typeof localStorage !== "undefined"
+            ? localStorage.getItem(COUNTDOWN_TYPE_KEY) === "mondays"
+            : false,
+    );
+    $effect(() => {
+        localStorage.setItem(
+            COUNTDOWN_TYPE_KEY,
+            showMondays ? "mondays" : "days",
+        );
+    });
+
+    function mondaysUntil(daysUntil: number): number {
+        if (daysUntil <= 0) return 0;
+        const todayDow = new Date().getDay();
+        let count = 0;
+        for (let i = 1; i <= daysUntil; i++) {
+            if ((todayDow + i) % 7 === 1) count++;
+        }
+        return count;
+    }
+
+    function formatCountdown(daysUntil: number): string {
+        if (daysUntil === 0) return "Hôm nay";
+        if (showMondays) {
+            const m = mondaysUntil(daysUntil);
+            return m === 0 ? "còn tuần này" : `còn ${m} cái thứ Hai`;
+        }
+        return `còn ${daysUntil} ngày`;
+    }
+
+    function formatCountdownHeading(daysUntil: number): string {
+        if (showMondays) {
+            const m = mondaysUntil(daysUntil);
+            return m === 0 ? "tuần này" : `${m} cái thứ Hai`;
+        }
+        return `${daysUntil} ngày`;
+    }
+
     function prevMonth() {
         if (calMonth === 1) {
             calMonth = 12;
@@ -127,9 +167,21 @@
         onclick={() => (showSettings = !showSettings)}
         aria-label="Cài đặt"
     >
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <circle cx="12" cy="12" r="3" />
+            <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+            />
         </svg>
     </button>
     {#if showSettings}
@@ -137,14 +189,25 @@
             <div class="setting-row">
                 <span class="setting-label">Quốc gia</span>
                 <div class="country-options">
-                    <button class="country-btn" onclick={switchToVN} aria-label="Việt Nam">🇻🇳</button>
-                    <button class="country-btn active" aria-label="Đài Loan">🇹🇼</button>
+                    <button
+                        class="country-btn"
+                        onclick={switchToVN}
+                        aria-label="Việt Nam">🇻🇳</button
+                    >
+                    <button class="country-btn active" aria-label="Đài Loan"
+                        >🇹🇼</button
+                    >
                 </div>
             </div>
             <div class="settings-divider"></div>
             <label class="toggle-row">
                 <input type="checkbox" bind:checked={showBoth} />
                 <span>Dương lịch + Âm lịch</span>
+            </label>
+            <div class="settings-divider"></div>
+            <label class="toggle-row">
+                <input type="checkbox" bind:checked={showMondays} />
+                <span>Đếm theo số thứ Hai</span>
             </label>
         </div>
     {/if}
@@ -163,7 +226,10 @@
                 <span class="special-day">🇹🇼 {nextHoliday.name}</span>
             </span>
         {:else if isSelectedToday && nextHoliday}
-            🇹🇼 Còn <strong>{nextHoliday.daysUntil} ngày</strong> nữa đến
+            🇹🇼 Còn <strong
+                >{formatCountdownHeading(nextHoliday.daysUntil)}</strong
+            >
+            nữa đến
             <button
                 class="holiday-link"
                 onclick={() =>
@@ -212,7 +278,6 @@
                 <div class="card-sub">Năm {selected.lunarYearName}</div>
             </section>
         </div>
-
     </div>
 
     <section class="cal" class:gold-shine={isThanTai}>
@@ -271,7 +336,11 @@
                     class:is-holiday={day.isOffWork && !day.isToday}
                     class:is-weekend={day.isWeekend && !day.isToday}
                     aria-label={`Ngày ${day.solarDay} tháng ${day.solarMonth}, âm lịch ${day.lunarDay}/${day.lunarMonth}${day.holiday ? ", " + day.holiday : ""}`}
-                    onclick={() => { calMonth = day.solarMonth; calYear = day.solarYear; selectDate(day.solarDay, day.solarMonth, day.solarYear); }}
+                    onclick={() => {
+                        calMonth = day.solarMonth;
+                        calYear = day.solarYear;
+                        selectDate(day.solarDay, day.solarMonth, day.solarYear);
+                    }}
                 >
                     <span class="sd">{day.solarDay}</span>
                     <span class="ld" class:new-month={day.lunarDay === 1}>
@@ -296,9 +365,7 @@
                     >
                         <span class="h-name">{h.name}</span>
                         <span class="h-count" class:h-today={h.daysUntil === 0}>
-                            {h.daysUntil === 0
-                                ? "Hôm nay"
-                                : `còn ${h.daysUntil} ngày`}
+                            {formatCountdown(h.daysUntil)}
                         </span>
                     </button>
                 {/each}
@@ -423,7 +490,9 @@
         align-items: center;
         justify-content: center;
         color: #78716c;
-        transition: background 0.15s, color 0.15s;
+        transition:
+            background 0.15s,
+            color 0.15s;
     }
 
     .settings-btn:hover {
@@ -471,7 +540,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: border-color 0.15s, background 0.15s;
+        transition:
+            border-color 0.15s,
+            background 0.15s;
     }
 
     .country-btn.active {
