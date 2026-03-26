@@ -381,8 +381,10 @@
 
 <footer class="footer" class:gold-theme={isThanTai}>
     <span
-        >by <a href="https://thethongngu.com" target="_blank" rel="noopener"
-            >thethongngu</a
+        >by <a
+            href="https://thethongngu.github.io"
+            target="_blank"
+            rel="noopener">thethongngu</a
         ></span
     >
     <span class="sep">·</span>
