@@ -2,17 +2,17 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import {
-        getTodayInfoTW,
-        getDateInfoTW,
-        getCalendarDaysTW,
-        getUpcomingHolidaysTW,
-    } from "$lib/calendar-tw";
+        getTodayInfoHK,
+        getDateInfoHK,
+        getCalendarDaysHK,
+        getUpcomingHolidaysHK,
+    } from "$lib/calendar-hk";
     import { DAY_NAMES_SHORT, LUNAR_MONTH_NAMES } from "$lib/calendar";
 
     const COUNTRY_KEY = "amlich-country";
 
     onMount(() => {
-        localStorage.setItem(COUNTRY_KEY, "tw");
+        localStorage.setItem(COUNTRY_KEY, "hk");
     });
 
     function switchToVN() {
@@ -20,24 +20,24 @@
         goto("/");
     }
 
-    function switchToHK() {
-        localStorage.setItem(COUNTRY_KEY, "hk");
-        goto("/hk");
+    function switchToTW() {
+        localStorage.setItem(COUNTRY_KEY, "tw");
+        goto("/tw");
     }
 
-    const today = getTodayInfoTW();
-    const holidays = getUpcomingHolidaysTW();
+    const today = getTodayInfoHK();
+    const holidays = getUpcomingHolidaysHK();
     const nextHoliday = holidays[0] ?? null;
 
     let calMonth = $state(today.solarMonth);
     let calYear = $state(today.solarYear);
-    let days = $derived(getCalendarDaysTW(calMonth, calYear));
+    let days = $derived(getCalendarDaysHK(calMonth, calYear));
 
     let selectedDay = $state(today.solarDay);
     let selectedMonth = $state(today.solarMonth);
     let selectedYear = $state(today.solarYear);
     let selected = $derived(
-        getDateInfoTW(selectedDay, selectedMonth, selectedYear),
+        getDateInfoHK(selectedDay, selectedMonth, selectedYear),
     );
 
     const SHOW_BOTH_KEY = "amlich-show-both";
@@ -199,13 +199,13 @@
                         onclick={switchToVN}
                         aria-label="Việt Nam">🇻🇳</button
                     >
-                    <button class="country-btn active" aria-label="Đài Loan"
-                        >🇹🇼</button
-                    >
                     <button
                         class="country-btn"
-                        onclick={switchToHK}
-                        aria-label="Hồng Kông">🇭🇰</button
+                        onclick={switchToTW}
+                        aria-label="Đài Loan">🇹🇼</button
+                    >
+                    <button class="country-btn active" aria-label="Hồng Kông"
+                        >🇭🇰</button
                     >
                 </div>
             </div>
@@ -223,7 +223,7 @@
     {/if}
 </div>
 
-<h1 class="sr-only">Âm lịch Đài Loan - Ngày lễ</h1>
+<h1 class="sr-only">Âm lịch Hồng Kông - Ngày lễ</h1>
 <main class="page" class:gold-theme={isThanTai}>
     <div class="next-holiday">
         {#if isSelectedToday && nextHoliday && nextHoliday.daysUntil === 0}
@@ -233,10 +233,10 @@
                         alt="Được nghỉ"
                         class="stamp"
                     />{/if}
-                <span class="special-day">🇹🇼 {nextHoliday.name}</span>
+                <span class="special-day">🇭🇰 {nextHoliday.name}</span>
             </span>
         {:else if isSelectedToday && nextHoliday}
-            🇹🇼 Còn <strong
+            🇭🇰 Còn <strong
                 >{formatCountdownHeading(nextHoliday.daysUntil)}</strong
             >
             nữa đến
@@ -256,12 +256,12 @@
                         alt="Được nghỉ"
                         class="stamp"
                     />{/if}
-                <span class="special-day">🇹🇼 {selected.holiday}</span>
+                <span class="special-day">🇭🇰 {selected.holiday}</span>
             </span>
         {:else if isSelectedWeekend}
-            <span class="special-day">🇹🇼 Cuối tuần</span>
+            <span class="special-day">🇭🇰 Cuối tuần</span>
         {:else}
-            <span class="normal-day">🇹🇼 Ngày bình thường</span>
+            <span class="normal-day">🇭🇰 Ngày bình thường</span>
         {/if}
     </div>
     <div class="today-col">
