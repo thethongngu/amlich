@@ -13,8 +13,11 @@
     const COUNTRY_KEY = "amlich-country";
 
     onMount(() => {
-        if (localStorage.getItem(COUNTRY_KEY) === "tw") {
+        const saved = localStorage.getItem(COUNTRY_KEY);
+        if (saved === "tw") {
             goto("/tw", { replaceState: true });
+        } else if (saved === "hk") {
+            goto("/hk", { replaceState: true });
         } else {
             localStorage.setItem(COUNTRY_KEY, "vn");
         }
@@ -23,6 +26,11 @@
     function switchToTW() {
         localStorage.setItem(COUNTRY_KEY, "tw");
         goto("/tw");
+    }
+
+    function switchToHK() {
+        localStorage.setItem(COUNTRY_KEY, "hk");
+        goto("/hk");
     }
 
     const today = getTodayInfo();
@@ -201,6 +209,11 @@
                         class="country-btn"
                         onclick={switchToTW}
                         aria-label="Đài Loan">🇹🇼</button
+                    >
+                    <button
+                        class="country-btn"
+                        onclick={switchToHK}
+                        aria-label="Hồng Kông">🇭🇰</button
                     >
                 </div>
             </div>
