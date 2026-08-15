@@ -60,6 +60,26 @@ const TW_YEAR: Record<number, TWHolidayDef[]> = {
 		{ month: 10, day: 9, name: 'Nghỉ bù Quốc Khánh Đài Loan', offWork: true },
 		{ month: 10, day: 26, name: 'Nghỉ bù Ngày Quang phục', offWork: true },
 	],
+	// Hành chính viện phê chuẩn lịch nghỉ năm 116 (2027) — tổng 121 ngày nghỉ
+	// Nguồn: dgpa.gov.tw (人事行政總處)
+	2027: [
+		{ month: 2, day: 4, name: 'Đêm trước Giao thừa', offWork: true },
+		{ month: 2, day: 5, name: 'Đêm Giao thừa', offWork: true },
+		{ month: 2, day: 6, name: 'Tết Nguyên Đán', offWork: true },
+		{ month: 2, day: 7, name: 'Mùng 2 Tết', offWork: true },
+		{ month: 2, day: 8, name: 'Mùng 3 Tết', offWork: true },
+		{ month: 2, day: 9, name: 'Nghỉ bù Tết Nguyên Đán', offWork: true },
+		{ month: 2, day: 10, name: 'Nghỉ bù Tết Nguyên Đán', offWork: true },
+		{ month: 3, day: 1, name: 'Nghỉ bù Tưởng niệm Hòa bình', offWork: true },
+		{ month: 4, day: 5, name: 'Thanh Minh', offWork: true },
+		{ month: 4, day: 6, name: 'Nghỉ bù Ngày Thiếu nhi', offWork: true },
+		{ month: 4, day: 30, name: 'Nghỉ bù Quốc tế Lao động', offWork: true },
+		{ month: 6, day: 9, name: 'Tết Đoan Ngọ', offWork: true },
+		{ month: 9, day: 15, name: 'Tết Trung Thu', offWork: true },
+		{ month: 10, day: 11, name: 'Nghỉ bù Quốc Khánh Đài Loan', offWork: true },
+		{ month: 12, day: 24, name: 'Nghỉ bù Ngày Hiến pháp', offWork: true },
+		{ month: 12, day: 31, name: 'Nghỉ bù Tết Dương lịch 2028', offWork: true },
+	],
 };
 
 function findTWHoliday(day: number, month: number, year: number): TWHolidayDef | undefined {

@@ -254,6 +254,12 @@ const YEAR_OVERRIDES: Record<number, YearOverride[]> = {
 	2026: [
 		// Giỗ Tổ Hùng Vương (10/3 AL) falls on Sunday 26/4, nghỉ bù Monday 27/4
 		{ name: 'Nghỉ bù Giỗ Tổ Hùng Vương', day: 27, month: 4, offWork: true },
+		// Quốc khánh 2026 — Thông báo 9441/TB-BNV (Bộ Nội vụ):
+		// nghỉ 5 ngày liên tục 29/8 → 2/9, hoán đổi ngày làm việc thứ Hai 31/8
+		// sang thứ Bảy 22/8.
+		{ name: 'Đi làm bù (hoán đổi 31/8)', day: 22, month: 8, offWork: false },
+		{ name: 'Nghỉ hoán đổi Quốc Khánh', day: 31, month: 8, offWork: true },
+		{ name: 'Nghỉ lễ Quốc Khánh', day: 1, month: 9, offWork: true },
 	],
 };
 

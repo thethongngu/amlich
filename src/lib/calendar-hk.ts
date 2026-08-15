@@ -60,8 +60,8 @@ const HK_YEAR: Record<number, HKHolidayDef[]> = {
 	],
 	2027: [
 		{ month: 2,  day: 6,  name: 'Mùng 1 Tết Âm lịch',                   offWork: true },
-		{ month: 2,  day: 8,  name: 'Nghỉ bù Mùng 2 Tết Âm lịch',           offWork: true },
-		{ month: 2,  day: 9,  name: 'Mùng 3 Tết Âm lịch',                   offWork: true },
+		{ month: 2,  day: 8,  name: 'Mùng 3 Tết Âm lịch',                   offWork: true },
+		{ month: 2,  day: 9,  name: 'Nghỉ bù Mùng 2 Tết Âm lịch',           offWork: true },
 		{ month: 3,  day: 26, name: 'Thứ Sáu Tuần Thánh (Good Friday)',      offWork: true },
 		{ month: 3,  day: 27, name: 'Ngày sau Good Friday',                  offWork: true },
 		{ month: 3,  day: 29, name: 'Thứ Hai Phục Sinh (Easter Monday)',     offWork: true },
