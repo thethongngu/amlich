@@ -79,7 +79,7 @@
         position: fixed;
         left: 0;
         right: 0;
-        bottom: calc(58px + env(safe-area-inset-bottom));
+        bottom: calc(70px + env(safe-area-inset-bottom));
         gap: 2px;
         padding: 6px 16px 8px;
         background: var(--page-bg);

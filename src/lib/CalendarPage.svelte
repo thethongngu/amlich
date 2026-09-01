@@ -431,7 +431,7 @@
     .m-page {
         max-width: 520px;
         margin: 0 auto;
-        padding: 18px 16px calc(140px + env(safe-area-inset-bottom));
+        padding: 18px 16px calc(152px + env(safe-area-inset-bottom));
     }
 
     .m-divider {

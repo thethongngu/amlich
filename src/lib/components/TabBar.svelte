@@ -29,7 +29,8 @@
         position: fixed;
         left: 18px;
         right: 18px;
-        bottom: calc(10px + env(safe-area-inset-bottom));
+        /* Extra lift so it clears the iOS home indicator / nav bar. */
+        bottom: calc(22px + env(safe-area-inset-bottom));
         z-index: 100;
         display: grid;
         grid-template-columns: 1fr 1fr;
