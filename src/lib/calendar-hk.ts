@@ -1,24 +1,11 @@
 // Hong Kong Holiday Calendar
 // Holiday data sourced from gov.hk
-// Reuses lunar date display logic from calendar.ts
+// Only the data lives here — the calendar logic is shared in solar-holidays.ts
 
-import {
-	getDateInfo,
-	getCalendarDays,
-	type TodayInfo,
-	type CalendarDay,
-	type UpcomingHoliday,
-} from '$lib/calendar';
-
-interface HKHolidayDef {
-	day: number;
-	month: number;
-	name: string;
-	offWork: boolean;
-}
+import { createSolarHolidayCalendar, type SolarHolidayDef } from '$lib/solar-holidays';
 
 // Fixed solar holidays that apply every year
-const HK_BASE: HKHolidayDef[] = [
+const HK_BASE: SolarHolidayDef[] = [
 	{ month: 1,  day: 1,  name: 'Tết Dương lịch',            offWork: true },
 	{ month: 5,  day: 1,  name: 'Ngày Quốc tế Lao động',    offWork: true },
 	{ month: 7,  day: 1,  name: 'Ngày thành lập HKSAR',     offWork: true },
@@ -29,7 +16,7 @@ const HK_BASE: HKHolidayDef[] = [
 // Year-specific holidays: CNY, Easter, Ching Ming, Dragon Boat, Mid-Autumn,
 // Chung Yeung, Boxing Day, and compensatory days
 // TODO: Add data for 2028+ (source: gov.hk, usually published ~May of prior year)
-const HK_YEAR: Record<number, HKHolidayDef[]> = {
+const HK_YEAR: Record<number, SolarHolidayDef[]> = {
 	2025: [
 		{ month: 1,  day: 29, name: 'Mùng 1 Tết Âm lịch',               offWork: true },
 		{ month: 1,  day: 30, name: 'Mùng 2 Tết Âm lịch',               offWork: true },
@@ -74,69 +61,4 @@ const HK_YEAR: Record<number, HKHolidayDef[]> = {
 	],
 };
 
-function findHKHoliday(day: number, month: number, year: number): HKHolidayDef | undefined {
-	const yearSpecific = HK_YEAR[year]?.find((h) => h.day === day && h.month === month);
-	if (yearSpecific) return yearSpecific;
-	return HK_BASE.find((h) => h.day === day && h.month === month);
-}
-
-export function getDateInfoHK(d: number, m: number, y: number): TodayInfo {
-	const base = getDateInfo(d, m, y);
-	const holiday = findHKHoliday(d, m, y);
-	return {
-		...base,
-		holiday: holiday?.name,
-		holidayType: holiday ? 'solar' : undefined,
-		isOffWork: holiday?.offWork ?? false,
-	};
-}
-
-export function getTodayInfoHK(): TodayInfo {
-	const now = new Date();
-	return getDateInfoHK(now.getDate(), now.getMonth() + 1, now.getFullYear());
-}
-
-export function getCalendarDaysHK(solarMonth: number, solarYear: number): CalendarDay[] {
-	return getCalendarDays(solarMonth, solarYear).map((day) => {
-		if (!day.isCurrentMonth) return day;
-		const holiday = findHKHoliday(day.solarDay, solarMonth, solarYear);
-		return {
-			...day,
-			holiday: holiday?.name,
-			isOffWork: holiday?.offWork ?? false,
-		};
-	});
-}
-
-export function getUpcomingHolidaysHK(): UpcomingHoliday[] {
-	const now = new Date();
-	now.setHours(0, 0, 0, 0);
-	const currentYear = now.getFullYear();
-	const pad = (n: number) => String(n).padStart(2, '0');
-	const results: UpcomingHoliday[] = [];
-
-	for (const yr of [currentYear, currentYear + 1]) {
-		// Merge base + year-specific; year-specific takes precedence for same day
-		const holidayMap = new Map<string, HKHolidayDef>();
-		for (const h of HK_BASE) holidayMap.set(`${h.month}-${h.day}`, h);
-		for (const h of HK_YEAR[yr] ?? []) holidayMap.set(`${h.month}-${h.day}`, h);
-
-		for (const h of holidayMap.values()) {
-			const date = new Date(yr, h.month - 1, h.day);
-			const daysUntil = Math.round((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-			if (daysUntil >= 0) {
-				results.push({
-					name: h.name,
-					solarDate: `${pad(h.day)}/${pad(h.month)}`,
-					solarDay: h.day,
-					solarMonth: h.month,
-					solarYear: yr,
-					daysUntil,
-				});
-			}
-		}
-	}
-
-	results.sort((a, b) => a.daysUntil - b.daysUntil || a.solarMonth - b.solarMonth || a.solarDay - b.solarDay);
-	return results;
-}
+export const hkCalendar = createSolarHolidayCalendar(HK_BASE, HK_YEAR);
