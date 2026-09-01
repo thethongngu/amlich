@@ -1,48 +1,79 @@
 /*
  * Global design tokens.
  *
- * Palette: Tailwind CSS default scales — `stone` for surfaces/text and
- * `amber` for the UI accent. Country holiday colours (red-600 / blue-600 /
- * teal-600) live in src/lib/countries.ts because they are data, not chrome.
+ * Palette: warm "paper" neutrals tinted toward off-white, a gold accent for
+ * lunar information and an ink accent for today. Country holiday colours live
+ * in src/lib/countries.ts because they are data, not chrome — the raw palette
+ * they pick from is documented below.
+ *
+ * Typography: Be Vietnam Pro for every piece of UI text (built for stacked
+ * Vietnamese diacritics), Newsreader only for the two big date numbers and the
+ * year in the calendar header.
  *
  * Components only ever reference these variables, so the Vía Thần Tài "gold"
  * theme is a single token override instead of dozens of per-selector rules.
  */
 
 :root {
-	--surface: #ffffff; /* white */
-	--surface-sunken: #fafaf9; /* stone-50 */
-	--surface-hover: #f5f5f4; /* stone-100 */
-	--border: #e7e5e4; /* stone-200 */
-	--text: #1c1917; /* stone-900 */
-	--text-muted: #78716c; /* stone-500 */
-	--text-faint: #a8a29e; /* stone-400 */
-	--accent: #f59e0b; /* amber-500 */
-	--accent-strong: #b45309; /* amber-700 */
-	--accent-soft-border: #fcd34d; /* amber-300 */
+	--font-ui:
+		'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+		sans-serif;
+	--font-display: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
 
-	--card-radius: 16px;
-	--card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-	--popover-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+	/* ── Warm neutrals ── */
+	--page-bg: #efe9dd;
+	--surface: #fffcf6; /* cards / calendar panel */
+	--surface-sunken: #f7f1e6; /* chips */
+	--surface-hover: #f1e9da;
+	--border: #e4dccc;
+	--text: #2b2318; /* ink */
+	--text-secondary: #6b6154;
+	--text-muted: #8a7f6e;
+	--text-faint: #8a7f6e;
+	--out-month: #d6cebf;
+
+	/* ── Accents ── */
+	--accent: #b07c22; /* gold: lunar dates & mùng một */
+	--accent-strong: #8f6318;
+	--accent-soft: #f0e6d1;
+	--accent-soft-border: #dcc38c;
+	--sunday: #9c4a42;
+	--today-bg: #2b2318;
+	--today-fg: #fffcf6;
+
+	/* ── Country palette (one per country, matched lightness/chroma) ── */
+	--c-vn: #be3a31; /* Việt Nam — red */
+	--c-cn: #a63d6e; /* Trung Quốc — plum */
+	--c-jp: #1e6f5c; /* Nhật Bản — jade */
+	--c-kr: #3d6ba8; /* Hàn Quốc — indigo */
+	--c-tw: #7a6bb5; /* Đài Loan — violet */
+	--c-us: #4e7a2e; /* Hoa Kỳ — olive */
+
+	--card-radius: 20px;
+	--card-shadow:
+		0 1px 2px rgba(43, 35, 24, 0.04), 0 10px 30px -12px rgba(43, 35, 24, 0.16);
+	--popover-shadow:
+		0 2px 6px rgba(43, 35, 24, 0.06), 0 18px 40px -16px rgba(43, 35, 24, 0.28);
 }
 
 /* ── Vía Thần Tài (10th day of lunar month 1) ── */
 
 .gold-theme {
-	--accent: #daa520;
-	--accent-strong: #b8860b;
-	--accent-soft-border: #daa520;
+	--accent: #b07c22;
+	--accent-strong: #8f6318;
+	--accent-soft-border: #d9b45e;
 }
 
 body:has(.gold-theme) {
-	background: #fdf8ec;
+	background: #f3ead6;
 }
 
 .gold-shine {
 	position: relative;
-	background: linear-gradient(135deg, #fffdf5 0%, #fff9e6 50%, #fffdf5 100%);
-	border: 1.5px solid #e8d48b;
-	box-shadow: 0 2px 12px rgba(218, 165, 32, 0.15);
+	background: linear-gradient(135deg, #fffdf7 0%, #fdf5e4 50%, #fffdf7 100%);
+	box-shadow:
+		inset 0 0 0 1px #e6d3a6,
+		0 10px 30px -12px rgba(43, 35, 24, 0.18);
 }
 
 .gold-shine::before {
@@ -52,11 +83,11 @@ body:has(.gold-theme) {
 	background: linear-gradient(
 		105deg,
 		transparent 20%,
-		rgba(255, 215, 0, 0.12) 35%,
-		rgba(255, 223, 100, 0.28) 45%,
-		rgba(255, 255, 255, 0.4) 50%,
-		rgba(255, 223, 100, 0.28) 55%,
-		rgba(255, 215, 0, 0.12) 65%,
+		rgba(176, 124, 34, 0.06) 35%,
+		rgba(217, 180, 94, 0.18) 45%,
+		rgba(255, 255, 255, 0.36) 50%,
+		rgba(217, 180, 94, 0.18) 55%,
+		rgba(176, 124, 34, 0.06) 65%,
 		transparent 80%
 	);
 	background-size: 300% 100%;

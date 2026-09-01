@@ -29,6 +29,11 @@
     } from "$lib/prefs";
     import DayHeadline from "$lib/components/DayHeadline.svelte";
     import HeroCards from "$lib/components/HeroCards.svelte";
+    import MobileHeader from "$lib/components/MobileHeader.svelte";
+    import MonthStrip from "$lib/components/MonthStrip.svelte";
+    import MonthGrid from "$lib/components/MonthGrid.svelte";
+    import DaySheet from "$lib/components/DaySheet.svelte";
+    import TabBar, { type Tab } from "$lib/components/TabBar.svelte";
     import MonthCalendar from "$lib/components/MonthCalendar.svelte";
     import YearCalendar from "$lib/components/YearCalendar.svelte";
     import UpcomingList from "$lib/components/UpcomingList.svelte";
@@ -100,20 +105,58 @@
         calMonth === today.solarMonth && calYear === today.solarYear,
     );
 
-    const holidays = $derived(mergeUpcoming(activeCountries));
-    const nextHoliday = $derived(holidays[0] ?? null);
+    const allHolidays = $derived(mergeUpcoming(activeCountries));
+    const nextHoliday = $derived(allHolidays[0] ?? null);
+
+    // "Sắp tối" only lists the year on screen; if that year is already over
+    // (or out of data range) fall back to everything we know about.
+    const holidays = $derived.by(() => {
+        const inYear = allHolidays.filter((h) => h.solarYear === calYear);
+        return inYear.length > 0 ? inYear : allHolidays;
+    });
     const days = $derived(buildDays(calMonth, calYear, activeCountries));
 
-    // ── Wide screen: full-year grid ──
+    // ── Breakpoints: phone layout below 768px, full-year grid from 1280px ──
 
-    let wide = $state(false);
+    // Seeded from matchMedia so the phone layout is right on first paint.
+    const matches = (q: string) =>
+        typeof window !== "undefined" && window.matchMedia(q).matches;
+
+    let wide = $state(matches("(min-width: 1280px)"));
+    let narrow = $state(matches("(max-width: 767px)"));
     $effect(() => {
-        const mq = window.matchMedia("(min-width: 1280px)");
-        const update = () => (wide = mq.matches);
+        const yearMq = window.matchMedia("(min-width: 1280px)");
+        const phoneMq = window.matchMedia("(max-width: 767px)");
+        const update = () => {
+            wide = yearMq.matches;
+            narrow = phoneMq.matches;
+        };
         update();
-        mq.addEventListener("change", update);
-        return () => mq.removeEventListener("change", update);
+        yearMq.addEventListener("change", update);
+        phoneMq.addEventListener("change", update);
+        return () => {
+            yearMq.removeEventListener("change", update);
+            phoneMq.removeEventListener("change", update);
+        };
     });
+
+    // ── Phone-only state: bottom tabs + day detail sheet ──
+
+    let tab = $state<Tab>("cal");
+    let sheetOpen = $state(false);
+
+    function selectCellMobile(day: number, month: number, year: number) {
+        selectCell(day, month, year);
+        sheetOpen = true;
+    }
+
+    function goToHolidayMobile(day: number, month: number, year: number) {
+        calMonth = month;
+        calYear = year;
+        selectDate(day, month, year);
+        tab = "cal";
+        sheetOpen = true;
+    }
 
     const yearMonths = $derived(
         wide
@@ -211,6 +254,63 @@
 
 <h1 class="sr-only">{country.title}</h1>
 
+{#if narrow}
+    <!-- ── Phone: header + month strip, calendar / upcoming tabs ── -->
+    <main class="m-page" class:gold-theme={isThanTai}>
+        <MobileHeader
+            month={calMonth}
+            year={calYear}
+            {selectedCodes}
+            onprev={prevMonth}
+            onnext={nextMonth}
+            onToday={goToday}
+            ontoggleCountry={toggleCountry}
+        />
+        <MonthStrip month={calMonth} onpick={goToMonth} />
+        <div class="m-divider"></div>
+
+        {#if tab === "cal"}
+            <MonthGrid
+                {days}
+                {selectedDay}
+                {selectedMonth}
+                {selectedYear}
+                large
+                onselect={selectCellMobile}
+            />
+            {#if holidays.length > 0}
+                <UpcomingList
+                    holidays={holidays.slice(0, 3)}
+                    {multi}
+                    large
+                    format={(d) => formatCountdown(d, showMondays)}
+                    onselect={goToHolidayMobile}
+                    onSeeAll={() => (tab = "upcoming")}
+                />
+            {/if}
+        {:else}
+            <UpcomingList
+                {holidays}
+                {multi}
+                large
+                showHeading={false}
+                format={(d) => formatCountdown(d, showMondays)}
+                onselect={goToHolidayMobile}
+            />
+        {/if}
+
+        <TabBar bind:tab />
+    </main>
+
+    <DaySheet
+        open={sheetOpen}
+        {selected}
+        marks={selectedMarks}
+        offWork={selectedIsOffWork}
+        gold={isThanTai}
+        onclose={() => (sheetOpen = false)}
+    />
+{:else}
 <main
     class="page"
     class:gold-theme={isThanTai}
@@ -220,7 +320,6 @@
     <div class="area-headline">
         <DayHeadline
             marks={selectedMarks}
-            isOffWork={selectedIsOffWork}
             isToday={isSelectedToday}
             isWeekend={isSelectedWeekend}
             {nextHoliday}
@@ -233,7 +332,12 @@
     </div>
 
     <div class="area-cards">
-        <HeroCards {selected} {showBoth} gold={isThanTai} />
+        <HeroCards
+            {selected}
+            {showBoth}
+            offWork={selectedIsOffWork}
+            gold={isThanTai}
+        />
     </div>
 
     <div class="area-cal" bind:this={calEl}>
@@ -242,6 +346,7 @@
                 year={calYear}
                 months={yearMonths}
                 countries={activeCountries}
+                {selectedCodes}
                 {selectedDay}
                 {selectedMonth}
                 {selectedYear}
@@ -251,12 +356,14 @@
                 onprev={() => calYear--}
                 onnext={() => calYear++}
                 onToday={goToday}
+                ontoggleCountry={toggleCountry}
             />
         {:else}
             <MonthCalendar
                 month={calMonth}
                 year={calYear}
                 {days}
+                {selectedCodes}
                 {selectedDay}
                 {selectedMonth}
                 {selectedYear}
@@ -267,6 +374,7 @@
                 onnext={nextMonth}
                 onToday={goToday}
                 onPickMonth={goToMonth}
+                ontoggleCountry={toggleCountry}
             />
         {/if}
     </div>
@@ -299,16 +407,12 @@
         ></div>
     {/if}
 </main>
+{/if}
 
-<SiteFooter gold={isThanTai} settings={settingsMenu} />
+<SiteFooter gold={isThanTai} settings={settingsMenu} phone={narrow} />
 
 {#snippet settingsMenu()}
-    <SettingsMenu
-        {selectedCodes}
-        bind:showBoth
-        bind:showMondays
-        ontoggleCountry={toggleCountry}
-    />
+    <SettingsMenu bind:showBoth bind:showMondays />
 {/snippet}
 
 <style>
@@ -319,6 +423,21 @@
         max-width: 420px;
         margin: 0 auto;
         padding: 32px 20px 24px;
+    }
+
+    /* ── Phone layout: flat on the page, no card chrome ── */
+
+    /* Bottom padding clears the fixed footer + tab bar. */
+    .m-page {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 18px 16px calc(140px + env(safe-area-inset-bottom));
+    }
+
+    .m-divider {
+        height: 1px;
+        background: var(--border);
+        margin-bottom: 8px;
     }
 
     .area-cal {

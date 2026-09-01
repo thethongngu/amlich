@@ -31,6 +31,29 @@ export interface Country {
 	calendar: SolarHolidayCalendar;
 }
 
+/**
+ * Country colour palette: one hue per country, matched in lightness/chroma so
+ * no single country shouts louder than the others. `tint` is the soft paper
+ * wash of the same hue used to fill holiday cells.
+ *
+ * Only the countries we ship are wired up below, but the rest of the palette is
+ * kept here so adding a country is a one-line change.
+ */
+export const COUNTRY_PALETTE = {
+	/** Việt Nam — red */
+	red: { color: '#be3a31', tint: '#f7e7e2' },
+	/** Trung Quốc — plum */
+	plum: { color: '#a63d6e', tint: '#f6e8ee' },
+	/** Nhật Bản — jade */
+	jade: { color: '#1e6f5c', tint: '#e2eee9' },
+	/** Hàn Quốc — indigo */
+	indigo: { color: '#3d6ba8', tint: '#e6ecf5' },
+	/** Đài Loan — violet */
+	violet: { color: '#7a6bb5', tint: '#ebe8f4' },
+	/** Hoa Kỳ — olive */
+	olive: { color: '#4e7a2e', tint: '#e9efe0' }
+} as const;
+
 const vnCalendar: SolarHolidayCalendar = {
 	getTodayInfo,
 	getDateInfo,
@@ -45,8 +68,7 @@ export const COUNTRIES: Country[] = [
 		flag: '🇻🇳',
 		label: 'Việt Nam',
 		title: 'Âm lịch - Ngày lễ',
-		color: '#dc2626', // tailwind red-600
-		tint: '#fee2e2', // tailwind red-100
+		...COUNTRY_PALETTE.red,
 		calendar: vnCalendar,
 	},
 	{
@@ -55,8 +77,7 @@ export const COUNTRIES: Country[] = [
 		flag: '🇹🇼',
 		label: 'Đài Loan',
 		title: 'Âm lịch Đài Loan - Ngày lễ',
-		color: '#2563eb', // tailwind blue-600
-		tint: '#dbeafe', // tailwind blue-100
+		...COUNTRY_PALETTE.violet,
 		calendar: twCalendar,
 	},
 	{
@@ -65,8 +86,8 @@ export const COUNTRIES: Country[] = [
 		flag: '🇭🇰',
 		label: 'Hồng Kông',
 		title: 'Âm lịch Hồng Kông - Ngày lễ',
-		color: '#0d9488', // tailwind teal-600
-		tint: '#ccfbf1', // tailwind teal-100
+		// Jade rather than plum: keeps it clearly apart from the Việt Nam red.
+		...COUNTRY_PALETTE.jade,
 		calendar: hkCalendar,
 	},
 ];

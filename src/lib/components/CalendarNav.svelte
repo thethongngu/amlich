@@ -40,33 +40,31 @@
     }
 
     .go-today-btn {
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        background: none;
+        border: none;
+        border-radius: 999px;
+        background: var(--surface-sunken);
         cursor: default;
-        color: var(--border);
-        padding: 2px 8px;
+        color: var(--out-month);
+        padding: 6px 14px;
         font-family: inherit;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         font-weight: 500;
-        line-height: 1.4;
+        line-height: 1.3;
         transition:
             color 0.15s,
-            border-color 0.15s,
             background 0.15s;
         touch-action: manipulation;
         white-space: nowrap;
     }
 
     .go-today-btn.active {
-        color: var(--accent-strong);
-        border-color: var(--accent-soft-border);
+        color: var(--text-secondary);
         cursor: pointer;
     }
 
     .go-today-btn.active:hover {
-        background: var(--accent-strong);
-        color: #fff;
+        background: var(--today-bg);
+        color: var(--today-fg);
     }
 
     .nav-btn {
@@ -75,28 +73,31 @@
         justify-content: center;
         width: 30px;
         height: 30px;
-        border-radius: 8px;
+        border-radius: 999px;
         border: none;
-        background: none;
+        background: var(--surface-sunken);
         cursor: pointer;
-        font-size: 1.2rem;
+        font-size: 1.05rem;
         line-height: 1;
         padding: 0;
-        color: var(--text-muted);
+        color: var(--text-secondary);
         font-family: inherit;
-        transition: background 0.15s;
+        transition:
+            background 0.15s,
+            color 0.15s;
         touch-action: manipulation;
     }
 
     .nav-btn:hover {
-        background: var(--surface-hover);
+        background: var(--today-bg);
+        color: var(--today-fg);
     }
 
     @media (min-width: 768px) {
         .nav-btn {
-            width: 34px;
-            height: 34px;
-            font-size: 1.3rem;
+            width: 32px;
+            height: 32px;
+            font-size: 1.1rem;
         }
     }
 </style>

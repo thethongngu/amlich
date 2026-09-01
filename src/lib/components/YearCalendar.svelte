@@ -1,14 +1,16 @@
 <script lang="ts">
     import MonthGrid from "./MonthGrid.svelte";
     import CalendarNav from "./CalendarNav.svelte";
+    import CountryPicker from "./CountryPicker.svelte";
     import type { DayCell } from "$lib/holidays";
-    import type { Country } from "$lib/countries";
+    import type { Country, CountryCode } from "$lib/countries";
 
     /** Full 12-month grid shown on wide screens. */
     let {
         year,
         months,
         countries,
+        selectedCodes,
         selectedDay,
         selectedMonth,
         selectedYear,
@@ -18,10 +20,12 @@
         onprev,
         onnext,
         onToday,
+        ontoggleCountry,
     }: {
         year: number;
         months: { month: number; days: DayCell[] }[];
         countries: Country[];
+        selectedCodes: CountryCode[];
         selectedDay: number;
         selectedMonth: number;
         selectedYear: number;
@@ -31,21 +35,14 @@
         onprev: () => void;
         onnext: () => void;
         onToday: () => void;
+        ontoggleCountry: (country: Country) => void;
     } = $props();
 </script>
 
 <section class="year-cal" class:gold-shine={gold}>
     <div class="cal-header">
         <div class="cal-title">{year}</div>
-        <div class="legend">
-            {#each countries as c}
-                <span class="legend-item">
-                    <i class="swatch" style:background={c.color}></i>
-                    <span class="legend-flag">{c.flag}</span>
-                    <span style:color={c.color}>{c.label}</span>
-                </span>
-            {/each}
-        </div>
+        <CountryPicker {selectedCodes} ontoggle={ontoggleCountry} />
         <CalendarNav
             {todayActive}
             {onprev}
@@ -71,13 +68,22 @@
             </div>
         {/each}
     </div>
+
+    <div class="legend">
+        {#each countries as c}
+            <span class="legend-item" style:color={c.color}>
+                <i class="swatch" style:background={c.color}></i>
+                {c.label}
+            </span>
+        {/each}
+    </div>
 </section>
 
 <style>
     .year-cal {
         background: var(--surface);
         border-radius: var(--card-radius);
-        padding: 24px 26px;
+        padding: 26px 30px 16px;
         box-shadow: var(--card-shadow);
         display: flex;
         flex-direction: column;
@@ -88,54 +94,34 @@
     }
 
     .cal-header {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 14px;
+        margin-bottom: 18px;
+    }
+
+    .cal-header :global(.picker-wrap) {
+        justify-self: center;
+    }
+
+    .cal-header :global(.cal-controls) {
+        justify-self: end;
     }
 
     .cal-title {
-        font-size: 1.35rem;
-        font-weight: 700;
+        font-family: var(--font-display);
+        font-size: 2.3rem;
+        font-weight: 400;
         letter-spacing: -0.01em;
-        color: var(--text);
-    }
-
-    .legend {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 6px 16px;
-        margin: 0 auto;
-        padding: 0 16px;
-    }
-
-    .legend-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.82rem;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .swatch {
-        width: 10px;
-        height: 10px;
-        border-radius: 3px;
-        flex: none;
-    }
-
-    .legend-flag {
-        font-size: 0.95rem;
         line-height: 1;
+        color: var(--text);
     }
 
     .year-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         grid-template-rows: repeat(3, minmax(0, 1fr));
-        gap: clamp(18px, 2.6vh, 40px) clamp(22px, 2.4vw, 52px);
+        gap: clamp(16px, 2.4vh, 36px) clamp(22px, 2.4vw, 52px);
         min-height: 0;
         flex: 1;
     }
@@ -148,13 +134,41 @@
     }
 
     .month-name {
-        font-size: clamp(0.8rem, 0.85vw, 1.05rem);
-        font-weight: 700;
-        color: var(--text-muted);
+        font-size: clamp(0.66rem, 0.68vw, 0.82rem);
+        font-weight: 600;
+        color: var(--text-secondary);
         text-transform: uppercase;
-        letter-spacing: 0.06em;
-        margin-bottom: clamp(8px, 1.2vh, 18px);
+        letter-spacing: 0.14em;
+        margin-bottom: clamp(8px, 1.1vh, 16px);
         text-align: center;
+    }
+
+    /* ── Legend: quiet key strip at the bottom of the panel ── */
+
+    .legend {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        padding-top: 16px;
+        margin-top: 4px;
+    }
+
+    .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .swatch {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex: none;
     }
 
     /* Short viewports: keep cells readable by letting the year scroll. */

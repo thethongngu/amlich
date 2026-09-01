@@ -11,9 +11,10 @@
 	:global(body) {
 		margin: 0;
 		padding: 0;
-		background: #f5f5f4; /* tailwind stone-100 */
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-		color: #1c1917; /* tailwind stone-900 */
+		background: var(--page-bg);
+		font-family: var(--font-ui);
+		color: var(--text);
+		font-synthesis: none;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 	}

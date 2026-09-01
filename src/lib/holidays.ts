@@ -8,6 +8,8 @@ import type { Country, CountryCode } from '$lib/countries';
 export interface Mark {
 	code: CountryCode;
 	flag: string;
+	/** Country name, e.g. "Việt Nam". */
+	label: string;
 	name: string;
 	offWork: boolean;
 	color: string;
@@ -30,7 +32,15 @@ export interface MergedHoliday {
 }
 
 function markOf(c: Country, name: string, offWork: boolean): Mark {
-	return { code: c.code, flag: c.flag, name, offWork, color: c.color, tint: c.tint };
+	return {
+		code: c.code,
+		flag: c.flag,
+		label: c.label,
+		name,
+		offWork,
+		color: c.color,
+		tint: c.tint
+	};
 }
 
 /**

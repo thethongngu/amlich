@@ -1,17 +1,14 @@
 <script lang="ts">
-    import { COUNTRIES, type Country, type CountryCode } from "$lib/countries";
-
-    /** Footer settings popover: country picker + display toggles. */
+    /**
+     * Footer settings popover: display toggles only — countries are picked
+     * from the chip in the calendar header.
+     */
     let {
-        selectedCodes,
         showBoth = $bindable(),
         showMondays = $bindable(),
-        ontoggleCountry,
     }: {
-        selectedCodes: CountryCode[];
         showBoth: boolean;
         showMondays: boolean;
-        ontoggleCountry: (country: Country) => void;
     } = $props();
 
     let open = $state(false);
@@ -50,23 +47,6 @@
 
     {#if open}
         <div class="settings-panel">
-            <div class="setting-block">
-                <span class="setting-label">Ngày lễ của</span>
-                <div class="country-checks">
-                    {#each COUNTRIES as c}
-                        <label class="country-check">
-                            <input
-                                type="checkbox"
-                                checked={selectedCodes.includes(c.code)}
-                                onchange={() => ontoggleCountry(c)}
-                            />
-                            <i class="swatch" style:background={c.color}></i>
-                            <span>{c.flag} {c.label}</span>
-                        </label>
-                    {/each}
-                </div>
-            </div>
-            <div class="settings-divider"></div>
             <label class="toggle-row">
                 <input type="checkbox" bind:checked={showBoth} />
                 <span>Dương lịch + Âm lịch</span>
@@ -89,10 +69,10 @@
     }
 
     .settings-btn {
-        border-radius: 8px;
+        border-radius: 999px;
         border: none;
         background: none;
-        padding: 2px 6px;
+        padding: 3px 8px;
         gap: 5px;
         font: inherit;
         font-weight: 500;
@@ -107,12 +87,12 @@
     }
 
     .settings-btn svg {
-        width: 15px;
-        height: 15px;
+        width: 14px;
+        height: 14px;
     }
 
     .settings-btn:hover {
-        background: var(--surface-hover);
+        background: var(--surface-sunken);
         color: var(--text);
     }
 
@@ -123,16 +103,10 @@
         transform: translateX(-50%);
         text-align: left;
         background: var(--surface);
-        border-radius: 12px;
+        border-radius: 14px;
         box-shadow: var(--popover-shadow);
         padding: 12px 16px;
         min-width: 200px;
-    }
-
-    .setting-label {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        white-space: nowrap;
     }
 
     .settings-divider {
@@ -141,33 +115,17 @@
         margin: 8px 0;
     }
 
-    .setting-block,
-    .country-checks {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .country-check,
     .toggle-row {
         display: flex;
         align-items: center;
-        gap: 7px;
+        gap: 8px;
         font-size: 0.85rem;
-        color: var(--text-muted);
+        color: var(--text-secondary);
         cursor: pointer;
         white-space: nowrap;
     }
 
-    .country-check input[type="checkbox"],
     .toggle-row input[type="checkbox"] {
         accent-color: var(--accent);
-    }
-
-    .swatch {
-        width: 10px;
-        height: 10px;
-        border-radius: 3px;
-        flex: none;
     }
 </style>

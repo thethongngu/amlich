@@ -1,13 +1,16 @@
 <script lang="ts">
     import MonthGrid from "./MonthGrid.svelte";
     import CalendarNav from "./CalendarNav.svelte";
+    import CountryPicker from "./CountryPicker.svelte";
     import type { DayCell } from "$lib/holidays";
+    import type { Country, CountryCode } from "$lib/countries";
 
     /** Single-month card used on phones / narrow desktops. */
     let {
         month,
         year,
         days,
+        selectedCodes,
         selectedDay,
         selectedMonth,
         selectedYear,
@@ -18,10 +21,12 @@
         onnext,
         onToday,
         onPickMonth,
+        ontoggleCountry,
     }: {
         month: number;
         year: number;
         days: DayCell[];
+        selectedCodes: CountryCode[];
         selectedDay: number;
         selectedMonth: number;
         selectedYear: number;
@@ -32,6 +37,7 @@
         onnext: () => void;
         onToday: () => void;
         onPickMonth: (month: number) => void;
+        ontoggleCountry: (country: Country) => void;
     } = $props();
 
     let showMonthPicker = $state(false);
@@ -58,7 +64,8 @@
                 class="cal-title"
                 onclick={() => (showMonthPicker = !showMonthPicker)}
             >
-                Tháng {month}, {year}
+                <span class="t-month">Tháng {month}</span>
+                <span class="t-year">{year}</span>
             </button>
             {#if showMonthPicker}
                 <div class="month-picker">
@@ -91,6 +98,10 @@
         {selectedYear}
         {onselect}
     />
+
+    <div class="cal-footer">
+        <CountryPicker {selectedCodes} ontoggle={ontoggleCountry} />
+    </div>
 </section>
 
 <style>
@@ -107,6 +118,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 10px;
         margin-bottom: 14px;
     }
 
@@ -115,36 +127,58 @@
     }
 
     .cal-title {
-        font-size: 0.95rem;
-        font-weight: 600;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
         background: none;
         border: none;
         cursor: pointer;
         color: var(--text);
         padding: 4px 8px;
         margin-left: -8px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-family: inherit;
+        transition: background 0.15s;
     }
 
     .cal-title:hover {
-        background: var(--surface-hover);
+        background: var(--surface-sunken);
+    }
+
+    .t-month {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-secondary);
+    }
+
+    .t-year {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 400;
+        line-height: 1;
+    }
+
+    .cal-footer {
+        display: flex;
+        justify-content: center;
+        padding-top: 14px;
     }
 
     .month-picker {
         display: grid;
         position: absolute;
         top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
+        left: 0;
         margin-top: 4px;
         background: var(--surface);
-        border-radius: 12px;
+        border-radius: 14px;
         box-shadow: var(--popover-shadow);
         padding: 8px;
         grid-template-columns: repeat(4, 1fr);
         gap: 4px;
-        z-index: 10;
+        z-index: 30;
     }
 
     .month-btn {
@@ -152,33 +186,33 @@
         height: 36px;
         border: none;
         background: none;
-        border-radius: 8px;
+        border-radius: 10px;
         font-family: inherit;
         font-size: 0.85rem;
         font-weight: 500;
-        color: var(--text-muted);
+        color: var(--text-secondary);
         cursor: pointer;
         transition: background 0.1s;
         touch-action: manipulation;
     }
 
     .month-btn:hover {
-        background: var(--surface-hover);
+        background: var(--surface-sunken);
     }
 
     .month-btn.active {
-        background: var(--accent-strong);
-        color: #fff;
+        background: var(--today-bg);
+        color: var(--today-fg);
         font-weight: 600;
     }
 
     @media (min-width: 768px) {
         .cal {
-            padding: 28px;
+            padding: 26px;
         }
 
-        .cal-title {
-            font-size: 1.05rem;
+        .t-year {
+            font-size: 1.45rem;
         }
     }
 </style>
