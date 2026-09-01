@@ -61,7 +61,36 @@ export const COUNTRIES: Country[] = [
 	},
 ];
 
-export const COUNTRY_KEY = 'amlich-country';
+/** Countries whose holidays are shown (multi-select). */
+export const COUNTRIES_KEY = 'amlich-countries';
+
+function isCountryCode(value: string): value is CountryCode {
+	return COUNTRIES.some((c) => c.code === value);
+}
+
+/**
+ * Reads the selected country list from storage, falling back to `fallback`
+ * (the route's country) on first visit.
+ */
+export function readSelectedCodes(fallback: CountryCode): CountryCode[] {
+	let stored: string[] = [];
+	if (typeof localStorage !== 'undefined') {
+		try {
+			const raw = localStorage.getItem(COUNTRIES_KEY);
+			const parsed = raw ? JSON.parse(raw) : null;
+			if (Array.isArray(parsed)) stored = parsed.filter((v) => typeof v === 'string');
+		} catch {
+			stored = [];
+		}
+	}
+	const codes = stored.filter(isCountryCode);
+	return codes.length > 0 ? codes : [fallback];
+}
+
+export function writeSelectedCodes(codes: CountryCode[]): void {
+	if (typeof localStorage === 'undefined') return;
+	localStorage.setItem(COUNTRIES_KEY, JSON.stringify(codes));
+}
 
 export function getCountry(code: CountryCode): Country {
 	const found = COUNTRIES.find((c) => c.code === code);

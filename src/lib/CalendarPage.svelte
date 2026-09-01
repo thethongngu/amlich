@@ -1,57 +1,155 @@
 <script lang="ts">
-    import { onMount, untrack } from "svelte";
-    import { goto } from "$app/navigation";
-    import { DAY_NAMES_SHORT, LUNAR_MONTH_NAMES } from "$lib/calendar";
+    import { untrack } from "svelte";
+    import {
+        DAY_NAMES_SHORT,
+        LUNAR_MONTH_NAMES,
+        getTodayInfo,
+        getDateInfo,
+        getCalendarDays,
+    } from "$lib/calendar";
     import {
         COUNTRIES,
-        COUNTRY_KEY,
         getCountry,
+        readSelectedCodes,
+        writeSelectedCodes,
         type Country,
         type CountryCode,
     } from "$lib/countries";
 
     /**
-     * Shared calendar page. Every country route renders this component and
-     * only passes its own country code; all data comes from the registry in
-     * $lib/countries.ts.
+     * Shared calendar page. Routes only pass the country used as the default
+     * selection on first visit; afterwards the user picks any set of countries
+     * in settings and all of their holidays are shown together.
      */
     let { code }: { code: CountryCode } = $props();
 
     // `code` is a static per-route literal, so reading it once is intentional.
     const country: Country = untrack(() => getCountry(code));
-    const cal = country.calendar;
 
-    onMount(() => {
-        const saved = localStorage.getItem(COUNTRY_KEY);
-        // The default route ("/") honours a previously chosen country.
-        if (country.path === "/" && saved && saved !== country.code) {
-            const target = COUNTRIES.find((c) => c.code === saved);
-            if (target) {
-                goto(target.path, { replaceState: true });
-                return;
-            }
-        }
-        localStorage.setItem(COUNTRY_KEY, country.code);
-    });
+    // ── Country selection (multi) ──
+    let selectedCodes = $state<CountryCode[]>(readSelectedCodes(country.code));
 
-    function switchTo(target: Country) {
-        localStorage.setItem(COUNTRY_KEY, target.code);
-        goto(target.path);
+    const activeCountries = $derived(
+        COUNTRIES.filter((c) => selectedCodes.includes(c.code)),
+    );
+    const multi = $derived(activeCountries.length > 1);
+    const allFlags = $derived(activeCountries.map((c) => c.flag).join(""));
+
+    function toggleCountry(c: Country) {
+        const has = selectedCodes.includes(c.code);
+        // Keep at least one country selected.
+        if (has && selectedCodes.length === 1) return;
+        selectedCodes = has
+            ? selectedCodes.filter((x) => x !== c.code)
+            : [...selectedCodes, c.code];
+        writeSelectedCodes(selectedCodes);
     }
 
-    const today = cal.getTodayInfo();
-    const holidays = cal.getUpcomingHolidays();
-    const nextHoliday = holidays[0] ?? null;
+    const today = getTodayInfo();
+
+    interface Mark {
+        code: CountryCode;
+        flag: string;
+        name: string;
+        offWork: boolean;
+    }
+
+    type MergedHoliday = {
+        name: string;
+        solarDay: number;
+        solarMonth: number;
+        solarYear: number;
+        daysUntil: number;
+        flags: string[];
+    };
+
+    const holidays = $derived.by((): MergedHoliday[] => {
+        const merged = new Map<string, MergedHoliday>();
+        for (const c of activeCountries) {
+            for (const h of c.calendar.getUpcomingHolidays()) {
+                const key = `${h.solarYear}-${h.solarMonth}-${h.solarDay}-${h.name}`;
+                const existing = merged.get(key);
+                if (existing) {
+                    if (!existing.flags.includes(c.flag))
+                        existing.flags.push(c.flag);
+                } else {
+                    merged.set(key, {
+                        name: h.name,
+                        solarDay: h.solarDay,
+                        solarMonth: h.solarMonth,
+                        solarYear: h.solarYear,
+                        daysUntil: h.daysUntil,
+                        flags: [c.flag],
+                    });
+                }
+            }
+        }
+        return [...merged.values()].sort(
+            (a, b) =>
+                a.daysUntil - b.daysUntil ||
+                a.solarMonth - b.solarMonth ||
+                a.solarDay - b.solarDay,
+        );
+    });
+    const nextHoliday = $derived(holidays[0] ?? null);
 
     let calMonth = $state(today.solarMonth);
     let calYear = $state(today.solarYear);
-    let days = $derived(cal.getCalendarDays(calMonth, calYear));
+
+    // One grid per selected country (identical layout), zipped into one grid
+    // carrying every country's holiday marks for each cell.
+    let days = $derived.by(() => {
+        const base = getCalendarDays(calMonth, calYear);
+        const grids = activeCountries.map((c) =>
+            c.calendar.getCalendarDays(calMonth, calYear),
+        );
+        return base.map((day, i) => {
+            const marks: Mark[] = [];
+            activeCountries.forEach((c, ci) => {
+                const d = grids[ci][i];
+                if (d.isCurrentMonth && d.holiday)
+                    marks.push({
+                        code: c.code,
+                        flag: c.flag,
+                        name: d.holiday,
+                        offWork: d.isOffWork,
+                    });
+            });
+            return {
+                ...day,
+                holiday: marks[0]?.name,
+                isOffWork: marks.some((m) => m.offWork),
+                marks,
+            };
+        });
+    });
 
     let selectedDay = $state(today.solarDay);
     let selectedMonth = $state(today.solarMonth);
     let selectedYear = $state(today.solarYear);
     let selected = $derived(
-        cal.getDateInfo(selectedDay, selectedMonth, selectedYear),
+        getDateInfo(selectedDay, selectedMonth, selectedYear),
+    );
+    const selectedMarks = $derived.by((): Mark[] => {
+        const marks: Mark[] = [];
+        for (const c of activeCountries) {
+            const info = c.calendar.getDateInfo(
+                selectedDay,
+                selectedMonth,
+                selectedYear,
+            );
+            if (info.holiday)
+                marks.push({
+                    code: c.code,
+                    flag: c.flag,
+                    name: info.holiday,
+                    offWork: info.isOffWork,
+                });
+        }
+        return marks;
+    });
+    const selectedIsOffWork = $derived(
+        selectedMarks.some((m) => m.offWork),
     );
 
     const SHOW_BOTH_KEY = "amlich-show-both";
@@ -134,10 +232,21 @@
         selectedYear = year;
     }
 
+    let calEl: HTMLElement | null = $state(null);
+
+    function scrollToCalendar() {
+        if (!calEl) return;
+        const rect = calEl.getBoundingClientRect();
+        const fullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+        if (fullyVisible) return;
+        calEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
     function goToHoliday(day: number, month: number, year: number) {
         calMonth = month;
         calYear = year;
         selectDate(day, month, year);
+        scrollToCalendar();
     }
 
     let showMonthPicker = $state(false);
@@ -205,18 +314,18 @@
     </button>
     {#if showSettings}
         <div class="settings-panel">
-            <div class="setting-row">
-                <span class="setting-label">Quốc gia</span>
-                <div class="country-options">
+            <div class="setting-block">
+                <span class="setting-label">Ngày lễ của</span>
+                <div class="country-checks">
                     {#each COUNTRIES as c}
-                        <button
-                            class="country-btn"
-                            class:active={c.code === country.code}
-                            onclick={c.code === country.code
-                                ? undefined
-                                : () => switchTo(c)}
-                            aria-label={c.label}>{c.flag}</button
-                        >
+                        <label class="country-check">
+                            <input
+                                type="checkbox"
+                                checked={selectedCodes.includes(c.code)}
+                                onchange={() => toggleCountry(c)}
+                            />
+                            <span>{c.flag} {c.label}</span>
+                        </label>
                     {/each}
                 </div>
             </div>
@@ -237,18 +346,21 @@
 <h1 class="sr-only">{country.title}</h1>
 <main class="page" class:gold-theme={isThanTai}>
     <div class="next-holiday">
-        {#if isSelectedToday && nextHoliday && nextHoliday.daysUntil === 0}
+        {#if selectedMarks.length > 0}
             <span class="holiday-title">
-                {#if selected.isOffWork}<img
+                {#if selectedIsOffWork}<img
                         src="/duocnghi.png"
                         alt="Được nghỉ"
                         class="stamp"
                     />{/if}
-                <span class="special-day">{country.flag} {nextHoliday.name}</span
+                <span class="special-day"
+                    >{#each selectedMarks as m, i}{i > 0
+                            ? " · "
+                            : ""}{m.flag} {m.name}{/each}</span
                 >
             </span>
         {:else if isSelectedToday && nextHoliday}
-            {country.flag} Còn <strong
+            {nextHoliday.flags.join("")} Còn <strong
                 >{formatCountdownHeading(nextHoliday.daysUntil)}</strong
             >
             nữa đến
@@ -261,20 +373,10 @@
                         nextHoliday.solarYear,
                     )}>{nextHoliday.name}</button
             >
-        {:else if selected.holiday}
-            <span class="holiday-title">
-                {#if selected.isOffWork}<img
-                        src="/duocnghi.png"
-                        alt="Được nghỉ"
-                        class="stamp"
-                    />{/if}
-                <span class="special-day">{country.flag} {selected.holiday}</span
-                >
-            </span>
         {:else if isSelectedWeekend}
-            <span class="special-day">{country.flag} Cuối tuần</span>
+            <span class="special-day">{allFlags} Cuối tuần</span>
         {:else}
-            <span class="normal-day">{country.flag} Ngày bình thường</span>
+            <span class="normal-day">{allFlags} Ngày bình thường</span>
         {/if}
     </div>
     <div class="today-col">
@@ -303,7 +405,11 @@
         </div>
     </div>
 
-    <section class="cal" class:gold-shine={isThanTai}>
+    <section
+        class="cal"
+        class:gold-shine={isThanTai}
+        bind:this={calEl}
+    >
         <div class="cal-header">
             <div class="cal-title-wrap">
                 <button class="cal-title" onclick={toggleMonthPicker}>
@@ -386,7 +492,11 @@
                         onclick={() =>
                             goToHoliday(h.solarDay, h.solarMonth, h.solarYear)}
                     >
-                        <span class="h-name">{h.name}</span>
+                        <span class="h-name"
+                            >{#if multi}<span class="h-flags"
+                                    >{h.flags.join("")}</span
+                                >{/if}{h.name}</span
+                        >
                         <span class="h-count" class:h-today={h.daysUntil === 0}>
                             {formatCountdown(h.daysUntil)}
                         </span>
@@ -543,44 +653,10 @@
         min-width: 200px;
     }
 
-    .setting-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-    }
-
     .setting-label {
         font-size: 0.8rem;
         color: #78716c;
         white-space: nowrap;
-    }
-
-    .country-options {
-        display: flex;
-        gap: 4px;
-    }
-
-    .country-btn {
-        width: 34px;
-        height: 28px;
-        border-radius: 6px;
-        border: 1.5px solid transparent;
-        background: #f5f5f4;
-        cursor: pointer;
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition:
-            border-color 0.15s,
-            background 0.15s;
-    }
-
-    .country-btn.active {
-        border-color: #c41e3a;
-        background: #fef2f2;
-        cursor: default;
     }
 
     .settings-divider {
@@ -601,6 +677,41 @@
 
     .toggle-row input[type="checkbox"] {
         accent-color: #c41e3a;
+    }
+
+    .setting-block {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .country-checks {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .country-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #57534e;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .country-check input[type="checkbox"] {
+        accent-color: #c41e3a;
+    }
+
+    .h-flags {
+        display: inline-block;
+        margin-right: 8px;
+        font-size: 1.15rem;
+        line-height: 1;
+        vertical-align: -2px;
+        letter-spacing: 1px;
     }
 
     .today-col {
@@ -954,12 +1065,19 @@
     .h-name {
         font-size: 0.8rem;
         font-weight: 500;
+        text-align: left;
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     .h-count {
         font-size: 0.8rem;
         font-weight: 600;
         color: #c41e3a;
+        text-align: right;
+        flex: 0 0 auto;
+        margin-left: 12px;
+        white-space: nowrap;
     }
 
     .h-count.h-today {
