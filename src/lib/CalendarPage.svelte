@@ -1,12 +1,6 @@
 <script lang="ts">
     import { untrack } from "svelte";
-    import {
-        DAY_NAMES_SHORT,
-        LUNAR_MONTH_NAMES,
-        getTodayInfo,
-        getDateInfo,
-        getCalendarDays,
-    } from "$lib/calendar";
+    import { getTodayInfo, getDateInfo } from "$lib/calendar";
     import {
         COUNTRIES,
         getCountry,
@@ -15,6 +9,31 @@
         type Country,
         type CountryCode,
     } from "$lib/countries";
+    import {
+        buildDays,
+        marksForDate,
+        mergeUpcoming,
+        formatCountdown,
+        formatCountdownHeading,
+    } from "$lib/holidays";
+    import {
+        readShowBoth,
+        writeShowBoth,
+        readShowMondays,
+        writeShowMondays,
+        readSidebarWidth,
+        writeSidebarWidth,
+        clampSidebarWidth,
+        SIDEBAR_MIN,
+        SIDEBAR_MAX,
+    } from "$lib/prefs";
+    import DayHeadline from "$lib/components/DayHeadline.svelte";
+    import HeroCards from "$lib/components/HeroCards.svelte";
+    import MonthCalendar from "$lib/components/MonthCalendar.svelte";
+    import YearCalendar from "$lib/components/YearCalendar.svelte";
+    import UpcomingList from "$lib/components/UpcomingList.svelte";
+    import SettingsMenu from "$lib/components/SettingsMenu.svelte";
+    import SiteFooter from "$lib/components/SiteFooter.svelte";
 
     /**
      * Shared calendar page. Routes only pass the country used as the default
@@ -25,10 +44,12 @@
 
     // `code` is a static per-route literal, so reading it once is intentional.
     const country: Country = untrack(() => getCountry(code));
+    const today = getTodayInfo();
+    const isThanTai = today.lunarMonth === 1 && today.lunarDay === 10;
 
     // ── Country selection (multi) ──
-    let selectedCodes = $state<CountryCode[]>(readSelectedCodes(country.code));
 
+    let selectedCodes = $state<CountryCode[]>(readSelectedCodes(country.code));
     const activeCountries = $derived(
         COUNTRIES.filter((c) => selectedCodes.includes(c.code)),
     );
@@ -45,236 +66,28 @@
         writeSelectedCodes(selectedCodes);
     }
 
-    const today = getTodayInfo();
+    // ── Preferences ──
 
-    interface Mark {
-        code: CountryCode;
-        flag: string;
-        name: string;
-        offWork: boolean;
-    }
+    let showBoth = $state(readShowBoth());
+    let showMondays = $state(readShowMondays());
+    $effect(() => writeShowBoth(showBoth));
+    $effect(() => writeShowMondays(showMondays));
 
-    type MergedHoliday = {
-        name: string;
-        solarDay: number;
-        solarMonth: number;
-        solarYear: number;
-        daysUntil: number;
-        flags: string[];
-    };
-
-    const holidays = $derived.by((): MergedHoliday[] => {
-        const merged = new Map<string, MergedHoliday>();
-        for (const c of activeCountries) {
-            for (const h of c.calendar.getUpcomingHolidays()) {
-                const key = `${h.solarYear}-${h.solarMonth}-${h.solarDay}-${h.name}`;
-                const existing = merged.get(key);
-                if (existing) {
-                    if (!existing.flags.includes(c.flag))
-                        existing.flags.push(c.flag);
-                } else {
-                    merged.set(key, {
-                        name: h.name,
-                        solarDay: h.solarDay,
-                        solarMonth: h.solarMonth,
-                        solarYear: h.solarYear,
-                        daysUntil: h.daysUntil,
-                        flags: [c.flag],
-                    });
-                }
-            }
-        }
-        return [...merged.values()].sort(
-            (a, b) =>
-                a.daysUntil - b.daysUntil ||
-                a.solarMonth - b.solarMonth ||
-                a.solarDay - b.solarDay,
-        );
-    });
-    const nextHoliday = $derived(holidays[0] ?? null);
+    // ── Displayed period + selection ──
 
     let calMonth = $state(today.solarMonth);
     let calYear = $state(today.solarYear);
-
-    // One grid per selected country (identical layout), zipped into one grid
-    // carrying every country's holiday marks for each cell.
-    let days = $derived.by(() => {
-        const base = getCalendarDays(calMonth, calYear);
-        const grids = activeCountries.map((c) =>
-            c.calendar.getCalendarDays(calMonth, calYear),
-        );
-        return base.map((day, i) => {
-            const marks: Mark[] = [];
-            activeCountries.forEach((c, ci) => {
-                const d = grids[ci][i];
-                if (d.isCurrentMonth && d.holiday)
-                    marks.push({
-                        code: c.code,
-                        flag: c.flag,
-                        name: d.holiday,
-                        offWork: d.isOffWork,
-                    });
-            });
-            return {
-                ...day,
-                holiday: marks[0]?.name,
-                isOffWork: marks.some((m) => m.offWork),
-                marks,
-            };
-        });
-    });
-
     let selectedDay = $state(today.solarDay);
     let selectedMonth = $state(today.solarMonth);
     let selectedYear = $state(today.solarYear);
-    let selected = $derived(
+
+    const selected = $derived(
         getDateInfo(selectedDay, selectedMonth, selectedYear),
     );
-    const selectedMarks = $derived.by((): Mark[] => {
-        const marks: Mark[] = [];
-        for (const c of activeCountries) {
-            const info = c.calendar.getDateInfo(
-                selectedDay,
-                selectedMonth,
-                selectedYear,
-            );
-            if (info.holiday)
-                marks.push({
-                    code: c.code,
-                    flag: c.flag,
-                    name: info.holiday,
-                    offWork: info.isOffWork,
-                });
-        }
-        return marks;
-    });
-    const selectedIsOffWork = $derived(
-        selectedMarks.some((m) => m.offWork),
+    const selectedMarks = $derived(
+        marksForDate(selectedDay, selectedMonth, selectedYear, activeCountries),
     );
-
-    const SHOW_BOTH_KEY = "amlich-show-both";
-    let showBoth = $state(
-        typeof localStorage !== "undefined"
-            ? localStorage.getItem(SHOW_BOTH_KEY) !== "false"
-            : true,
-    );
-    $effect(() => {
-        localStorage.setItem(SHOW_BOTH_KEY, String(showBoth));
-    });
-
-    const COUNTDOWN_TYPE_KEY = "amlich-countdown-type";
-    let showMondays = $state(
-        typeof localStorage !== "undefined"
-            ? localStorage.getItem(COUNTDOWN_TYPE_KEY) === "mondays"
-            : false,
-    );
-    $effect(() => {
-        localStorage.setItem(
-            COUNTDOWN_TYPE_KEY,
-            showMondays ? "mondays" : "days",
-        );
-    });
-
-    function mondaysUntil(daysUntil: number): number {
-        if (daysUntil <= 0) return 0;
-        const todayDow = new Date().getDay();
-        let count = 0;
-        for (let i = 1; i <= daysUntil; i++) {
-            if ((todayDow + i) % 7 === 1) count++;
-        }
-        return count;
-    }
-
-    function formatCountdown(daysUntil: number): string {
-        if (daysUntil === 0) return "Hôm nay";
-        if (showMondays) {
-            const m = mondaysUntil(daysUntil);
-            return m === 0 ? "còn tuần này" : `còn ${m} cái thứ Hai`;
-        }
-        return `còn ${daysUntil} ngày`;
-    }
-
-    function formatCountdownHeading(daysUntil: number): string {
-        if (showMondays) {
-            const m = mondaysUntil(daysUntil);
-            return m === 0 ? "tuần này" : `${m} cái thứ Hai`;
-        }
-        return `${daysUntil} ngày`;
-    }
-
-    function prevMonth() {
-        if (calMonth === 1) {
-            calMonth = 12;
-            calYear--;
-        } else {
-            calMonth--;
-        }
-    }
-
-    function nextMonth() {
-        if (calMonth === 12) {
-            calMonth = 1;
-            calYear++;
-        } else {
-            calMonth++;
-        }
-    }
-
-    function goToday() {
-        calMonth = today.solarMonth;
-        calYear = today.solarYear;
-        selectDate(today.solarDay, today.solarMonth, today.solarYear);
-    }
-
-    function selectDate(day: number, month: number, year: number) {
-        selectedDay = day;
-        selectedMonth = month;
-        selectedYear = year;
-    }
-
-    let calEl: HTMLElement | null = $state(null);
-
-    function scrollToCalendar() {
-        if (!calEl) return;
-        const rect = calEl.getBoundingClientRect();
-        const fullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
-        if (fullyVisible) return;
-        calEl.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-
-    function goToHoliday(day: number, month: number, year: number) {
-        calMonth = month;
-        calYear = year;
-        selectDate(day, month, year);
-        scrollToCalendar();
-    }
-
-    let showMonthPicker = $state(false);
-    let showSettings = $state(false);
-
-    function goToMonth(month: number) {
-        calMonth = month;
-        selectDate(1, month, calYear);
-        showMonthPicker = false;
-    }
-
-    function toggleMonthPicker() {
-        showMonthPicker = !showMonthPicker;
-    }
-
-    function handleClickOutside(event: MouseEvent) {
-        const target = event.target as HTMLElement;
-        if (showMonthPicker && !target.closest(".cal-title-wrap")) {
-            showMonthPicker = false;
-        }
-        if (showSettings && !target.closest(".settings-wrap")) {
-            showSettings = false;
-        }
-    }
-
-    const isCurrentMonth = $derived(
-        calMonth === today.solarMonth && calYear === today.solarYear,
-    );
+    const selectedIsOffWork = $derived(selectedMarks.some((m) => m.offWork));
     const isSelectedToday = $derived(
         selectedDay === today.solarDay &&
             selectedMonth === today.solarMonth &&
@@ -283,268 +96,224 @@
     const isSelectedWeekend = $derived(
         selected.dayOfWeek === "Thứ Bảy" || selected.dayOfWeek === "Chủ Nhật",
     );
+    const isCurrentMonth = $derived(
+        calMonth === today.solarMonth && calYear === today.solarYear,
+    );
 
-    const isThanTai = today.lunarMonth === 1 && today.lunarDay === 10;
+    const holidays = $derived(mergeUpcoming(activeCountries));
+    const nextHoliday = $derived(holidays[0] ?? null);
+    const days = $derived(buildDays(calMonth, calYear, activeCountries));
+
+    // ── Wide screen: full-year grid ──
+
+    let wide = $state(false);
+    $effect(() => {
+        const mq = window.matchMedia("(min-width: 1280px)");
+        const update = () => (wide = mq.matches);
+        update();
+        mq.addEventListener("change", update);
+        return () => mq.removeEventListener("change", update);
+    });
+
+    const yearMonths = $derived(
+        wide
+            ? Array.from({ length: 12 }, (_, i) => ({
+                  month: i + 1,
+                  days: buildDays(i + 1, calYear, activeCountries),
+              }))
+            : [],
+    );
+
+    // ── Navigation ──
+
+    function selectDate(day: number, month: number, year: number) {
+        selectedDay = day;
+        selectedMonth = month;
+        selectedYear = year;
+    }
+
+    function selectCell(day: number, month: number, year: number) {
+        calMonth = month;
+        if (!wide) calYear = year;
+        selectDate(day, month, year);
+    }
+
+    function prevMonth() {
+        if (calMonth === 1) {
+            calMonth = 12;
+            calYear--;
+        } else calMonth--;
+    }
+
+    function nextMonth() {
+        if (calMonth === 12) {
+            calMonth = 1;
+            calYear++;
+        } else calMonth++;
+    }
+
+    function goToMonth(month: number) {
+        calMonth = month;
+        selectDate(1, month, calYear);
+    }
+
+    function goToday() {
+        calMonth = today.solarMonth;
+        calYear = today.solarYear;
+        selectDate(today.solarDay, today.solarMonth, today.solarYear);
+    }
+
+    let calEl: HTMLElement | null = $state(null);
+
+    function goToHoliday(day: number, month: number, year: number) {
+        calMonth = month;
+        calYear = year;
+        selectDate(day, month, year);
+        if (!calEl) return;
+        const rect = calEl.getBoundingClientRect();
+        if (rect.top >= 0 && rect.bottom <= window.innerHeight) return;
+        calEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    // ── Resizable sidebar (wide screens) ──
+
+    let sidebarWidth = $state(readSidebarWidth());
+    let pageEl: HTMLElement | null = $state(null);
+
+    function startResize(e: PointerEvent) {
+        if (!pageEl) return;
+        e.preventDefault();
+        const rect = pageEl.getBoundingClientRect();
+        const padLeft = parseFloat(getComputedStyle(pageEl).paddingLeft) || 0;
+        const originX = rect.left + padLeft;
+        const onMove = (ev: PointerEvent) => {
+            sidebarWidth = clampSidebarWidth(ev.clientX - originX);
+        };
+        const onUp = () => {
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+            document.body.classList.remove("resizing");
+            writeSidebarWidth(sidebarWidth);
+        };
+        document.body.classList.add("resizing");
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+    }
+
+    function resizeKey(e: KeyboardEvent) {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const step = (e.shiftKey ? 40 : 10) * (e.key === "ArrowLeft" ? -1 : 1);
+        sidebarWidth = clampSidebarWidth(sidebarWidth + step);
+        writeSidebarWidth(sidebarWidth);
+    }
 </script>
 
-<svelte:window onclick={handleClickOutside} />
-
-<div class="settings-wrap">
-    <button
-        class="settings-btn"
-        onclick={() => (showSettings = !showSettings)}
-        aria-label="Cài đặt"
-    >
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-        >
-            <circle cx="12" cy="12" r="3" />
-            <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-            />
-        </svg>
-    </button>
-    {#if showSettings}
-        <div class="settings-panel">
-            <div class="setting-block">
-                <span class="setting-label">Ngày lễ của</span>
-                <div class="country-checks">
-                    {#each COUNTRIES as c}
-                        <label class="country-check">
-                            <input
-                                type="checkbox"
-                                checked={selectedCodes.includes(c.code)}
-                                onchange={() => toggleCountry(c)}
-                            />
-                            <span>{c.flag} {c.label}</span>
-                        </label>
-                    {/each}
-                </div>
-            </div>
-            <div class="settings-divider"></div>
-            <label class="toggle-row">
-                <input type="checkbox" bind:checked={showBoth} />
-                <span>Dương lịch + Âm lịch</span>
-            </label>
-            <div class="settings-divider"></div>
-            <label class="toggle-row">
-                <input type="checkbox" bind:checked={showMondays} />
-                <span>Đếm theo số thứ Hai</span>
-            </label>
-        </div>
-    {/if}
-</div>
-
 <h1 class="sr-only">{country.title}</h1>
-<main class="page" class:gold-theme={isThanTai}>
-    <div class="next-holiday">
-        {#if selectedMarks.length > 0}
-            <span class="holiday-title">
-                {#if selectedIsOffWork}<img
-                        src="/duocnghi.png"
-                        alt="Được nghỉ"
-                        class="stamp"
-                    />{/if}
-                <span class="special-day"
-                    >{#each selectedMarks as m, i}{i > 0
-                            ? " · "
-                            : ""}{m.flag} {m.name}{/each}</span
-                >
-            </span>
-        {:else if isSelectedToday && nextHoliday}
-            {nextHoliday.flags.join("")} Còn <strong
-                >{formatCountdownHeading(nextHoliday.daysUntil)}</strong
-            >
-            nữa đến
-            <button
-                class="holiday-link"
-                onclick={() =>
-                    goToHoliday(
-                        nextHoliday.solarDay,
-                        nextHoliday.solarMonth,
-                        nextHoliday.solarYear,
-                    )}>{nextHoliday.name}</button
-            >
-        {:else if isSelectedWeekend}
-            <span class="special-day">{allFlags} Cuối tuần</span>
+
+<main
+    class="page"
+    class:gold-theme={isThanTai}
+    style:--sidebar-w={sidebarWidth + "px"}
+    bind:this={pageEl}
+>
+    <div class="area-headline">
+        <DayHeadline
+            marks={selectedMarks}
+            isOffWork={selectedIsOffWork}
+            isToday={isSelectedToday}
+            isWeekend={isSelectedWeekend}
+            {nextHoliday}
+            countdown={nextHoliday
+                ? formatCountdownHeading(nextHoliday.daysUntil, showMondays)
+                : ""}
+            {allFlags}
+            onholiday={goToHoliday}
+        />
+    </div>
+
+    <div class="area-cards">
+        <HeroCards {selected} {showBoth} gold={isThanTai} />
+    </div>
+
+    <div class="area-cal" bind:this={calEl}>
+        {#if wide}
+            <YearCalendar
+                year={calYear}
+                months={yearMonths}
+                countries={activeCountries}
+                {selectedDay}
+                {selectedMonth}
+                {selectedYear}
+                todayActive={calYear !== today.solarYear || !isSelectedToday}
+                gold={isThanTai}
+                onselect={selectCell}
+                onprev={() => calYear--}
+                onnext={() => calYear++}
+                onToday={goToday}
+            />
         {:else}
-            <span class="normal-day">{allFlags} Ngày bình thường</span>
+            <MonthCalendar
+                month={calMonth}
+                year={calYear}
+                {days}
+                {selectedDay}
+                {selectedMonth}
+                {selectedYear}
+                todayActive={!isCurrentMonth || !isSelectedToday}
+                gold={isThanTai}
+                onselect={selectCell}
+                onprev={prevMonth}
+                onnext={nextMonth}
+                onToday={goToday}
+                onPickMonth={goToMonth}
+            />
         {/if}
     </div>
-    <div class="today-col">
-        <div class="hero-cards">
-            <section
-                class="hero solar-card"
-                class:hidden={!showBoth}
-                class:gold-shine={isThanTai}
-            >
-                <div class="card-title">Dương lịch</div>
-                <div class="big-day solar-big-day">{selected.solarDay}</div>
-                <div class="card-info">Tháng {selected.solarMonth}</div>
-                <div class="card-sub">{selected.solarYear}</div>
-            </section>
-
-            <section class="hero lunar-card" class:gold-shine={isThanTai}>
-                <div class="card-title">Âm lịch</div>
-                <div class="big-day lunar-big-day">{selected.lunarDay}</div>
-                <div class="card-info">
-                    Tháng {LUNAR_MONTH_NAMES[
-                        selected.lunarMonth
-                    ]}{selected.lunarLeap ? " (Nhuận)" : ""}
-                </div>
-                <div class="card-sub">Năm {selected.lunarYearName}</div>
-            </section>
-        </div>
-    </div>
-
-    <section
-        class="cal"
-        class:gold-shine={isThanTai}
-        bind:this={calEl}
-    >
-        <div class="cal-header">
-            <div class="cal-title-wrap">
-                <button class="cal-title" onclick={toggleMonthPicker}>
-                    Tháng {calMonth}, {calYear}
-                </button>
-                {#if showMonthPicker}
-                    <div class="month-picker">
-                        {#each Array.from({ length: 12 }, (_, i) => i + 1) as m}
-                            <button
-                                class="month-btn"
-                                class:active={m === calMonth}
-                                onclick={() => goToMonth(m)}
-                            >
-                                {m}
-                            </button>
-                        {/each}
-                    </div>
-                {/if}
-            </div>
-            <div class="cal-controls">
-                <button
-                    class="go-today-btn"
-                    class:active={!isCurrentMonth || !isSelectedToday}
-                    onclick={goToday}
-                    aria-label="Quay về hôm nay">Hôm nay</button
-                >
-                <button
-                    class="nav-btn"
-                    onclick={prevMonth}
-                    aria-label="Tháng trước">&lsaquo;</button
-                >
-                <button
-                    class="nav-btn"
-                    onclick={nextMonth}
-                    aria-label="Tháng sau">&rsaquo;</button
-                >
-            </div>
-        </div>
-        <div class="grid">
-            {#each DAY_NAMES_SHORT as name, i}
-                <div class="hdr" class:weekend={i >= 5}>{name}</div>
-            {/each}
-
-            {#each days as day}
-                <button
-                    class="cell"
-                    class:is-today={day.isToday}
-                    class:is-selected={day.isCurrentMonth &&
-                        day.solarDay === selectedDay &&
-                        calMonth === selectedMonth &&
-                        calYear === selectedYear}
-                    class:overflow={!day.isCurrentMonth}
-                    class:is-holiday={day.isOffWork && !day.isToday}
-                    class:is-weekend={day.isWeekend && !day.isToday}
-                    aria-label={`Ngày ${day.solarDay} tháng ${day.solarMonth}, âm lịch ${day.lunarDay}/${day.lunarMonth}${day.holiday ? ", " + day.holiday : ""}`}
-                    onclick={() => {
-                        calMonth = day.solarMonth;
-                        calYear = day.solarYear;
-                        selectDate(day.solarDay, day.solarMonth, day.solarYear);
-                    }}
-                >
-                    <span class="sd">{day.solarDay}</span>
-                    <span class="ld" class:new-month={day.lunarDay === 1}>
-                        {day.lunarDay === 1
-                            ? `1/${day.lunarMonth}`
-                            : day.lunarDay}
-                    </span>
-                </button>
-            {/each}
-        </div>
-    </section>
 
     {#if holidays.length > 0}
-        <section class="upcoming">
-            <h2>Sắp tới</h2>
-            <div class="upcoming-list">
-                {#each holidays as h}
-                    <button
-                        class="row"
-                        onclick={() =>
-                            goToHoliday(h.solarDay, h.solarMonth, h.solarYear)}
-                    >
-                        <span class="h-name"
-                            >{#if multi}<span class="h-flags"
-                                    >{h.flags.join("")}</span
-                                >{/if}{h.name}</span
-                        >
-                        <span class="h-count" class:h-today={h.daysUntil === 0}>
-                            {formatCountdown(h.daysUntil)}
-                        </span>
-                    </button>
-                {/each}
-            </div>
-        </section>
+        <div class="area-upcoming">
+            <UpcomingList
+                {holidays}
+                {multi}
+                format={(d) => formatCountdown(d, showMondays)}
+                onselect={goToHoliday}
+            />
+        </div>
+    {/if}
+
+    {#if wide}
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <div
+            class="resizer"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Kéo để đổi độ rộng cột trái"
+            aria-valuenow={Math.round(sidebarWidth)}
+            aria-valuemin={SIDEBAR_MIN}
+            aria-valuemax={SIDEBAR_MAX}
+            tabindex="0"
+            onpointerdown={startResize}
+            onkeydown={resizeKey}
+        ></div>
     {/if}
 </main>
 
-<footer class="footer" class:gold-theme={isThanTai}>
-    <span
-        >by <a
-            href="https://thethongngu.github.io"
-            target="_blank"
-            rel="noopener">thethongngu</a
-        ></span
-    >
-    <span class="sep">·</span>
-    <a
-        href="https://me.momo.vn/dQIQTQtWfeCBCwTGIDIziz"
-        target="_blank"
-        rel="noopener"
-        class="kofi-link">Ủng hộ ly cafe sữa (Momo)</a
-    >
-    <!-- <span class="sep">·</span>
-    <a
-        href="https://ko-fi.com/thethongngu"
-        target="_blank"
-        rel="noopener"
-        class="kofi-link">Buy me a coffee (Ko-fi)</a
-    > -->
-</footer>
+<SiteFooter gold={isThanTai} settings={settingsMenu} />
+
+{#snippet settingsMenu()}
+    <SettingsMenu
+        {selectedCodes}
+        bind:showBoth
+        bind:showMondays
+        ontoggleCountry={toggleCountry}
+    />
+{/snippet}
 
 <style>
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-    }
-
-    /* ── Mobile-first base ── */
+    /* Page layout only — every visual detail lives in the child components,
+       and colours come from the tokens in src/lib/theme.css. */
 
     .page {
         max-width: 420px;
@@ -552,842 +321,113 @@
         padding: 32px 20px 24px;
     }
 
-    /* ── Hero Cards ── */
-
-    .hero-cards {
-        display: flex;
-        gap: 10px;
-    }
-
-    .hero {
-        flex: 1;
-        text-align: center;
-        padding: 20px 12px 16px;
-        background: #fff;
-        border-radius: 20px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .hero.hidden {
-        display: none;
-    }
-
-    .card-title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #78716c;
-        margin-bottom: 4px;
-    }
-
-    .big-day {
-        font-size: 4.5rem;
-        font-weight: 800;
-        line-height: 1;
-        margin: 4px 0 8px;
-        letter-spacing: -0.03em;
-    }
-
-    .solar-big-day {
-        color: #2563eb;
-    }
-
-    .lunar-big-day {
-        color: #c41e3a;
-    }
-
-    .card-info {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #1c1917;
-    }
-
-    .card-sub {
-        font-size: 0.85rem;
-        color: #78716c;
-        margin-top: 2px;
-    }
-
-    /* ── Settings ── */
-
-    .settings-wrap {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        z-index: 200;
-    }
-
-    .settings-btn {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        border: none;
-        background: #fff;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #78716c;
-        transition:
-            background 0.15s,
-            color 0.15s;
-    }
-
-    .settings-btn:hover {
-        background: #f5f5f4;
-        color: #1c1917;
-    }
-
-    .settings-panel {
-        position: absolute;
-        top: calc(100% + 8px);
-        right: 0;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-        padding: 12px 16px;
-        min-width: 200px;
-    }
-
-    .setting-label {
-        font-size: 0.8rem;
-        color: #78716c;
-        white-space: nowrap;
-    }
-
-    .settings-divider {
-        height: 1px;
-        background: #f0ede8;
-        margin: 8px 0;
-    }
-
-    .toggle-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.85rem;
-        color: #78716c;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-
-    .toggle-row input[type="checkbox"] {
-        accent-color: #c41e3a;
-    }
-
-    .setting-block {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .country-checks {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .country-check {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.85rem;
-        color: #57534e;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-
-    .country-check input[type="checkbox"] {
-        accent-color: #c41e3a;
-    }
-
-    .h-flags {
-        display: inline-block;
-        margin-right: 8px;
-        font-size: 1.15rem;
-        line-height: 1;
-        vertical-align: -2px;
-        letter-spacing: 1px;
-    }
-
-    .today-col {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .next-holiday {
-        font-size: 1.5rem;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 16px;
-        min-height: 2.4em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 4px 12px;
-    }
-
-    .next-holiday strong {
-        color: #c41e3a;
-        font-weight: 700;
-    }
-
-    .holiday-link {
-        background: none;
-        border: none;
-        font: inherit;
-        color: #c41e3a;
-        font-weight: 700;
-        cursor: pointer;
-        padding: 0;
-        text-decoration: underline;
-        text-decoration-thickness: 2px;
-        text-underline-offset: 3px;
-        text-decoration-color: rgba(196, 30, 58, 0.3);
-        transition: text-decoration-color 0.15s;
-    }
-
-    .holiday-link:hover {
-        text-decoration-color: #c41e3a;
-    }
-
-    /* ── Calendar ── */
-
-    .cal {
-        background: #fff;
-        border-radius: 16px;
-        padding: 18px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    .area-cal {
         margin-top: 16px;
     }
 
-    .cal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 14px;
-    }
-
-    .cal-title-wrap {
-        position: relative;
-    }
-
-    .cal-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: #1c1917;
-        padding: 4px 8px;
-        margin-left: -8px;
-        border-radius: 8px;
-        font-family: inherit;
-    }
-
-    .cal-title:hover {
-        background: #f5f5f4;
-    }
-
-    .cal-controls {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .month-picker {
-        display: grid;
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        margin-top: 4px;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-        padding: 8px;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 4px;
-        z-index: 10;
-    }
-
-    .month-btn {
-        width: 40px;
-        height: 36px;
-        border: none;
-        background: none;
-        border-radius: 8px;
-        font-family: inherit;
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: #57534e;
-        cursor: pointer;
-        transition: background 0.1s;
-        touch-action: manipulation;
-    }
-
-    .month-btn:hover {
-        background: #f5f5f4;
-    }
-
-    .month-btn.active {
-        background: #c41e3a;
-        color: #fff;
-        font-weight: 600;
-    }
-
-    .go-today-btn {
-        border: 1px solid #e7e5e4;
-        border-radius: 6px;
-        background: none;
-        cursor: default;
-        color: #d6d3d1;
-        padding: 2px 8px;
-        font-family: inherit;
-        font-size: 0.7rem;
-        font-weight: 500;
-        line-height: 1.4;
-        transition:
-            color 0.15s,
-            border-color 0.15s,
-            background 0.15s;
-        touch-action: manipulation;
-        white-space: nowrap;
-    }
-
-    .go-today-btn.active {
-        color: #c41e3a;
-        border-color: #c41e3a;
-        cursor: pointer;
-    }
-
-    .go-today-btn.active:hover {
-        background: #c41e3a;
-        color: #fff;
-    }
-
-    .nav-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        border: none;
-        background: none;
-        cursor: pointer;
-        font-size: 1.2rem;
-        line-height: 1;
-        padding: 0;
-        color: #78716c;
-        font-family: inherit;
-        transition: background 0.15s;
-        touch-action: manipulation;
-    }
-
-    .nav-btn:hover {
-        background: #f5f5f4;
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 3px;
-    }
-
-    .hdr {
-        text-align: center;
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: #a8a29e;
-        padding: 4px 0 8px;
-    }
-
-    .hdr.weekend {
-        color: #e57373;
-    }
-
-    .cell {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 46px;
-        border-radius: 10px;
-        gap: 2px;
-        border: none;
-        background: none;
-        padding: 0;
-        cursor: pointer;
-        font-family: inherit;
-        color: #1c1917;
-        transition: background 0.1s;
-        touch-action: manipulation;
-    }
-
-    .cell:not(.is-today):hover {
-        background: #f5f5f4;
-    }
-
-    .cell.is-today:hover {
-        background: #a8162e;
-    }
-
-    .cell.overflow {
-        opacity: 0.35;
-    }
-
-    .sd {
-        font-size: 0.88rem;
-        font-weight: 500;
-        line-height: 1.2;
-    }
-
-    .ld {
-        font-size: 0.6rem;
-        color: #c4c0bb;
-        line-height: 1.1;
-    }
-
-    .ld.new-month {
-        color: #c41e3a;
-        font-weight: 600;
-        font-size: 0.55rem;
-    }
-
-    .cell.is-weekend .sd {
-        color: #e57373;
-    }
-
-    .cell.is-holiday {
-        background: #fef2f2;
-    }
-
-    .cell.is-today {
-        background: #c41e3a;
-    }
-
-    .cell.is-today .sd {
-        color: #fff;
-        font-weight: 700;
-    }
-
-    .cell.is-today .ld {
-        color: rgba(255, 255, 255, 0.6);
-    }
-
-    .cell.is-selected:not(.is-today) {
-        outline: 2px solid #c41e3a;
-        outline-offset: -2px;
-    }
-
-    .normal-day {
-        font-size: inherit;
-        font-weight: 700;
-        color: #1c1917;
-    }
-
-    .holiday-title {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .stamp {
-        position: absolute;
-        left: 50%;
-        top: 120%;
-        width: 4em;
-        height: 2em;
-        object-fit: contain;
-        z-index: 1;
-        transform: translateX(-50%) rotate(-25deg);
-        opacity: 0.85;
-        pointer-events: none;
-    }
-
-    .special-day {
-        font-size: inherit;
-        font-weight: 700;
-        color: #c41e3a;
-    }
-
-    /* ── Upcoming ── */
-
-    .upcoming {
-        padding: 24px 20px 0;
-    }
-
-    .upcoming h2 {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #a8a29e;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin: 0 0 12px;
-    }
-
-    .row {
-        display: flex;
-        width: 100%;
-        justify-content: space-between;
-        align-items: baseline;
-        padding: 10px 8px;
-        margin: 0 -8px;
-        border-bottom: 1px solid #f0ede8;
-        background: none;
-        border-left: none;
-        border-right: none;
-        border-top: none;
-        cursor: pointer;
-        font-family: inherit;
-        color: #1c1917;
-        border-radius: 8px;
-        transition: background 0.15s;
-        touch-action: manipulation;
-    }
-
-    .row:hover {
-        background: #f5f5f4;
-    }
-
-    .row:last-child {
-        border-bottom: none;
-    }
-
-    .h-name {
-        font-size: 0.8rem;
-        font-weight: 500;
-        text-align: left;
-        flex: 1 1 auto;
-        min-width: 0;
-    }
-
-    .h-count {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #c41e3a;
-        text-align: right;
-        flex: 0 0 auto;
-        margin-left: 12px;
-        white-space: nowrap;
-    }
-
-    .h-count.h-today {
-        background: #c41e3a;
-        color: #fff;
-        padding: 2px 12px;
-        border-radius: 12px;
-    }
-
-    /* ── Gold Shine (Vía Thần Tài) ── */
-
-    .gold-shine {
-        position: relative;
-        background: linear-gradient(
-            135deg,
-            #fffdf5 0%,
-            #fff9e6 50%,
-            #fffdf5 100%
-        );
-        border: 1.5px solid #e8d48b;
-    }
-
-    .gold-shine::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            105deg,
-            transparent 20%,
-            rgba(255, 215, 0, 0.12) 35%,
-            rgba(255, 223, 100, 0.28) 45%,
-            rgba(255, 255, 255, 0.4) 50%,
-            rgba(255, 223, 100, 0.28) 55%,
-            rgba(255, 215, 0, 0.12) 65%,
-            transparent 80%
-        );
-        background-size: 300% 100%;
-        animation: gold-sweep 3s ease-in-out infinite;
-        pointer-events: none;
-        z-index: 1;
-        border-radius: inherit;
-    }
-
-    @keyframes gold-sweep {
-        0% {
-            background-position: 100% 0;
-        }
-        100% {
-            background-position: -50% 0;
-        }
-    }
-
-    .gold-shine.solar-card {
-        box-shadow: 0 2px 12px rgba(218, 165, 32, 0.15);
-    }
-
-    .gold-shine.lunar-card {
-        box-shadow: 0 2px 12px rgba(218, 165, 32, 0.15);
-    }
-
-    .gold-shine.cal {
-        box-shadow: 0 2px 12px rgba(218, 165, 32, 0.15);
-    }
-
-    /* ── Gold Theme overrides (Vía Thần Tài) ── */
-
-    .gold-theme .special-day {
-        color: #b8860b;
-    }
-
-    .gold-theme .next-holiday strong {
-        color: #b8860b;
-    }
-
-    .gold-theme .holiday-link {
-        color: #b8860b;
-        text-decoration-color: rgba(184, 134, 11, 0.3);
-    }
-
-    .gold-theme .holiday-link:hover {
-        text-decoration-color: #b8860b;
-    }
-
-    .gold-theme .cell.is-today {
-        background: linear-gradient(135deg, #daa520, #f0c040);
-    }
-
-    .gold-theme .cell.is-today:hover {
-        background: linear-gradient(135deg, #c49520, #daa520);
-    }
-
-    .gold-theme .cell.is-selected:not(.is-today) {
-        outline-color: #daa520;
-    }
-
-    .gold-theme .cell.is-holiday {
-        background: #fff0c2;
-    }
-
-    .gold-theme .ld.new-month {
-        color: #b8860b;
-    }
-
-    .gold-theme .toggle-row input[type="checkbox"] {
-        accent-color: #daa520;
-    }
-
-    .gold-theme .go-today-btn.active {
-        color: #b8860b;
-        border-color: #b8860b;
-    }
-
-    .gold-theme .go-today-btn.active:hover {
-        background: #daa520;
-        color: #fff;
-    }
-
-    .gold-theme .month-btn.active {
-        background: #daa520;
-    }
-
-    .gold-theme .h-count {
-        color: #b8860b;
-    }
-
-    .gold-theme .h-count.h-today {
-        background: linear-gradient(135deg, #daa520, #f0c040);
-        color: #fff;
-    }
-
-    :global(body:has(.gold-theme)) {
-        background: #fdf8ec;
-    }
-
-    .footer.gold-theme .kofi-link {
-        color: #daa520 !important;
-    }
-
-    .footer.gold-theme .kofi-link:hover {
-        color: #b8860b !important;
-    }
-
-    /* ── Desktop ── */
+    /* ── Desktop: cards + list left, calendar right ── */
 
     @media (min-width: 768px) {
-        .settings-wrap {
-            top: 14px;
-            right: 14px;
-        }
-
-        .settings-btn {
-            width: 40px;
-            height: 40px;
-        }
-
         .page {
             max-width: 960px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto 1fr;
             gap: 32px 56px;
-            padding: 48px;
-            padding-bottom: 64px;
+            padding: 48px 48px 64px;
             height: 100dvh;
             box-sizing: border-box;
             align-content: start;
         }
 
-        .stamp {
-            left: -2.4em;
-            top: -120%;
-            width: 6em;
-            height: 3em;
-        }
-
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-        }
-
-        .hero {
-            padding: 28px 20px 20px;
-        }
-
-        .big-day {
-            font-size: 5.5rem;
-            margin: 8px 0 12px;
-        }
-
-        .card-info {
-            font-size: 1.15rem;
-        }
-
-        .card-sub {
-            font-size: 0.95rem;
-            margin-top: 4px;
-        }
-
-        .next-holiday {
+        .area-headline {
             grid-column: 1 / -1;
             grid-row: 1;
-            font-size: 2.2rem;
-            margin-bottom: 0;
-            min-height: auto;
         }
 
-        .today-col {
+        .area-cards {
             grid-column: 1;
             grid-row: 2;
             align-self: start;
         }
 
-        .cal {
+        .area-cal {
             grid-column: 2;
             grid-row: 2 / -1;
-            padding: 28px;
             margin-top: 0;
             align-self: start;
         }
 
-        .upcoming {
+        .area-upcoming {
             grid-column: 1;
             grid-row: 3;
-            padding: 0;
             min-height: 0;
-            display: flex;
-            flex-direction: column;
+        }
+    }
+
+    /* ── Wide: left sidebar + full-year grid ── */
+
+    @media (min-width: 1280px) {
+        .page {
+            max-width: none;
+            grid-template-columns: var(--sidebar-w, 320px) minmax(0, 1fr);
+            gap: 20px 36px;
+            padding: 28px 32px 48px;
         }
 
-        .upcoming-list {
-            overflow-y: auto;
+        .area-headline {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .area-cal {
+            grid-column: 2;
+            grid-row: 1 / -1;
             min-height: 0;
-            flex: 1;
-            padding: 0 16px;
-        }
-
-        .cal-title {
-            font-size: 1.05rem;
-        }
-
-        .nav-btn {
-            width: 34px;
-            height: 34px;
-            font-size: 1.3rem;
-        }
-
-        .cell {
-            min-height: 58px;
-        }
-
-        .sd {
-            font-size: 1rem;
-        }
-
-        .ld {
-            font-size: 0.7rem;
-        }
-
-        .ld.new-month {
-            font-size: 0.6rem;
-        }
-
-        .hdr {
-            font-size: 0.8rem;
-            padding: 6px 0 10px;
-        }
-
-        .h-name {
-            font-size: 0.85rem;
-        }
-
-        .h-count {
-            font-size: 0.85rem;
-        }
-
-        .row {
-            padding: 12px 0;
+            height: 100%;
+            align-self: stretch;
         }
     }
 
-    /* ── Footer ── */
+    /* ── Sidebar resizer: sits on the year card's left edge ── */
 
-    .footer {
-        text-align: center;
-        padding: 16px;
-        font-size: 0.8rem;
-        color: #a8a29e;
+    .resizer {
+        display: none;
     }
 
-    .footer a {
-        color: #78716c;
-        text-decoration: none;
-        font-weight: 500;
-    }
+    @media (min-width: 1280px) {
+        .resizer {
+            display: block;
+            grid-column: 2;
+            grid-row: 1 / -1;
+            justify-self: start;
+            align-self: stretch;
+            width: 12px;
+            margin-left: -6px;
+            cursor: col-resize;
+            background: transparent;
+            touch-action: none;
+            z-index: 5;
+        }
 
-    .footer a:hover {
-        color: #1c1917;
-    }
+        .resizer::after {
+            content: "";
+            display: block;
+            width: 4px;
+            height: 100%;
+            margin-left: 6px;
+            border-radius: 0 4px 4px 0;
+            background: transparent;
+            transition: background 0.15s;
+        }
 
-    .sep {
-        margin: 0 6px;
-    }
+        .resizer:hover::after,
+        .resizer:focus-visible::after {
+            background: var(--accent-soft-border);
+        }
 
-    .kofi-link {
-        color: #ff5e5b !important;
-    }
-
-    .kofi-link:hover {
-        color: #e04644 !important;
+        .resizer:focus-visible {
+            outline: none;
+        }
     }
 </style>

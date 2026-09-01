@@ -24,6 +24,10 @@ export interface Country {
 	label: string;
 	/** Suffix in the <h1> page title, e.g. "Âm lịch Đài Loan - Ngày lễ". */
 	title: string;
+	/** Accent colour used for this country's holidays (text, dots, legend). */
+	color: string;
+	/** Soft background tint of `color`, used to fill holiday cells. */
+	tint: string;
 	calendar: SolarHolidayCalendar;
 }
 
@@ -41,6 +45,8 @@ export const COUNTRIES: Country[] = [
 		flag: '🇻🇳',
 		label: 'Việt Nam',
 		title: 'Âm lịch - Ngày lễ',
+		color: '#dc2626', // tailwind red-600
+		tint: '#fee2e2', // tailwind red-100
 		calendar: vnCalendar,
 	},
 	{
@@ -49,6 +55,8 @@ export const COUNTRIES: Country[] = [
 		flag: '🇹🇼',
 		label: 'Đài Loan',
 		title: 'Âm lịch Đài Loan - Ngày lễ',
+		color: '#2563eb', // tailwind blue-600
+		tint: '#dbeafe', // tailwind blue-100
 		calendar: twCalendar,
 	},
 	{
@@ -57,6 +65,8 @@ export const COUNTRIES: Country[] = [
 		flag: '🇭🇰',
 		label: 'Hồng Kông',
 		title: 'Âm lịch Hồng Kông - Ngày lễ',
+		color: '#0d9488', // tailwind teal-600
+		tint: '#ccfbf1', // tailwind teal-100
 		calendar: hkCalendar,
 	},
 ];
