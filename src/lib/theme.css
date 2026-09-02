@@ -14,6 +14,28 @@
  * theme is a single token override instead of dozens of per-selector rules.
  */
 
+/*
+ * Root font-size drives every `rem` in the app, so scaling it here shrinks the
+ * whole UI — text and rem-based sizing/padding — proportionally, not just the
+ * gaps between elements. Wide layouts pack in the full-year grid + sidebar, so
+ * on large-but-dense screens we dial the base size down a notch.
+ */
+html {
+	font-size: 16px;
+}
+
+@media (min-width: 1280px) {
+	html {
+		font-size: 15px;
+	}
+}
+
+@media (min-width: 1536px) {
+	html {
+		font-size: 14px;
+	}
+}
+
 :root {
 	--font-ui:
 		'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
