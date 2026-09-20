@@ -413,7 +413,7 @@
         overflow: hidden;
         max-width: 520px;
         margin: 0 auto;
-        padding: 12px var(--gutter) calc(64px + env(safe-area-inset-bottom));
+        padding: calc(12px + var(--safe-t)) var(--gutter) calc(var(--tabbar-space) + 12px);
     }
 
     /* The picked day, answered before anything asks you to navigate. */
@@ -445,7 +445,8 @@
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto 1fr;
             gap: 32px 56px;
-            padding: 48px 48px 64px;
+            padding: calc(48px + var(--safe-t)) max(48px, var(--safe-r))
+                calc(64px + var(--safe-b)) max(48px, var(--safe-l));
             height: 100dvh;
             box-sizing: border-box;
             align-content: start;

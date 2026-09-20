@@ -96,6 +96,9 @@
             bottom: 0;
             left: 0;
             right: 0;
+            padding-bottom: calc(14px + var(--safe-b));
+            padding-left: max(16px, var(--safe-l));
+            padding-right: max(16px, var(--safe-r));
         }
     }
 

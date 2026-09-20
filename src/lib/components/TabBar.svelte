@@ -58,14 +58,17 @@
         grid-template-columns: 1fr 1fr 60px;
         background: var(--surface);
         border-top: 1px solid var(--border);
-        padding-bottom: env(safe-area-inset-bottom);
+        padding-bottom: var(--safe-b);
+        padding-left: max(10px, var(--safe-l));
+        padding-right: max(10px, var(--safe-r));
     }
 
     .tab {
         position: relative;
         border: none;
         background: none;
-        padding: 13px 0 12px;
+        height: var(--tabbar-h);
+        padding: 0;
         font-family: inherit;
         font-size: 0.88rem;
         font-weight: 500;

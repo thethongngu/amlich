@@ -58,9 +58,10 @@
         z-index: 301;
         background: var(--surface);
         border-radius: 22px 22px 0 0;
-        padding: 10px 18px calc(24px + env(safe-area-inset-bottom));
+        padding: 10px max(18px, var(--safe-r)) calc(24px + var(--safe-b))
+            max(18px, var(--safe-l));
         box-shadow: 0 -12px 40px -12px rgba(16, 23, 40, 0.4);
-        max-height: 86vh;
+        max-height: calc(86dvh - var(--safe-t));
         overflow-y: auto;
     }
 

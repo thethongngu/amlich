@@ -72,6 +72,14 @@ html {
 	--c-jp: #0e6b57; /* Nhật Bản — jade */
 	--c-us: #3f6b1e; /* Hoa Kỳ — olive */
 
+	/* ── Phone chrome: the bar row itself, with the iOS inset added on top ── */
+	--safe-t: env(safe-area-inset-top, 0px);
+	--safe-b: env(safe-area-inset-bottom, 0px);
+	--safe-l: env(safe-area-inset-left, 0px);
+	--safe-r: env(safe-area-inset-right, 0px);
+	--tabbar-h: 50px;
+	--tabbar-space: calc(var(--tabbar-h) + var(--safe-b));
+
 	--r-panel: 16px;
 	--r-card: 12px;
 	--r-cell: 8px;
