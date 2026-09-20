@@ -28,7 +28,6 @@
     import HeroCards from "$lib/components/HeroCards.svelte";
     import MobileHeader from "$lib/components/MobileHeader.svelte";
     import MonthCarousel from "$lib/components/MonthCarousel.svelte";
-    import CountryPicker from "$lib/components/CountryPicker.svelte";
     import TabBar, { type Tab } from "$lib/components/TabBar.svelte";
     import PhoneMenu from "$lib/components/PhoneMenu.svelte";
     import MonthCalendar from "$lib/components/MonthCalendar.svelte";
@@ -276,14 +275,6 @@
                     onshift={shiftMonth}
                 />
             </div>
-
-            <div class="m-countries">
-                <CountryPicker
-                    {selectedCodes}
-                    ontoggle={toggleCountry}
-                    sheet
-                />
-            </div>
         {:else}
             <UpcomingList
                 {holidays}
@@ -299,6 +290,8 @@
 
     <PhoneMenu
         open={menuOpen}
+        {selectedCodes}
+        ontoggleCountry={toggleCountry}
         bind:showBoth
         bind:showMondays
         onclose={() => (menuOpen = false)}
@@ -407,16 +400,20 @@
 
     /* ── Phone layout: flat on the page, no card chrome ── */
 
-    /* One rhythm for the whole phone page: 18px between blocks, tighter
-       inside them. The bottom padding clears the fixed tab bar. */
+    /* The phone page is exactly one screen tall. The summary and the month
+       bar take what they need; the grid absorbs whatever is left, so nothing
+       can push the page into scrolling on a shorter phone. */
     .m-page {
         --gutter: 16px;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 16px;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
         max-width: 520px;
         margin: 0 auto;
-        padding: 12px var(--gutter) calc(74px + env(safe-area-inset-bottom));
+        padding: 12px var(--gutter) calc(64px + env(safe-area-inset-bottom));
     }
 
     /* The picked day, answered before anything asks you to navigate. */
@@ -424,17 +421,15 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+        flex: none;
     }
 
     .m-month {
         display: flex;
         flex-direction: column;
         gap: 2px;
-    }
-
-    .m-countries {
-        display: flex;
-        justify-content: center;
+        flex: 1;
+        min-height: 0;
     }
 
     .area-cal {

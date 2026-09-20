@@ -186,8 +186,20 @@
 
     /* ── Phone sizing ── */
 
+    /* The phone page is one screen tall, so the list scrolls inside itself. */
     .upcoming.large {
-        padding: 8px 0 0;
+        padding: 4px 0 0;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .large .upcoming-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
     }
 
     .large .head {

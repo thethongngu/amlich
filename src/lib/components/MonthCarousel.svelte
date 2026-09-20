@@ -186,10 +186,13 @@
         overflow: hidden;
         touch-action: pan-y;
         margin: 0 calc(-1 * var(--gutter, 0px));
+        flex: 1;
+        min-height: 0;
     }
 
     .track {
         display: flex;
+        height: 100%;
         will-change: transform;
     }
 
@@ -201,5 +204,8 @@
         flex: 0 0 100%;
         box-sizing: border-box;
         padding: 0 var(--gutter, 0px);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
     }
 </style>

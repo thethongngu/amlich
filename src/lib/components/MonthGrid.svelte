@@ -238,8 +238,12 @@
 
     /* ── Large (phone): roomy cells, dashes instead of dots ── */
 
+    /* Rows stretch to fill the height the page hands down. */
     .grid.big {
         gap: 5px 4px;
+        flex: 1;
+        min-height: 0;
+        grid-template-rows: auto repeat(6, minmax(0, 1fr));
     }
 
     .grid.big .hdr {
@@ -249,7 +253,8 @@
     }
 
     .grid.big .cell {
-        min-height: 46px;
+        min-height: 0;
+        height: 100%;
         border-radius: var(--r-card);
         gap: 1px;
     }
