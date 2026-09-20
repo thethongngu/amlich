@@ -28,6 +28,7 @@ export interface MergedHoliday {
 	solarYear: number;
 	daysUntil: number;
 	flags: string[];
+	labels: string[];
 	colors: string[];
 }
 
@@ -104,6 +105,7 @@ export function mergeUpcoming(countries: Country[]): MergedHoliday[] {
 			if (existing) {
 				if (!existing.flags.includes(c.flag)) {
 					existing.flags.push(c.flag);
+					existing.labels.push(c.label);
 					existing.colors.push(c.color);
 				}
 			} else {
@@ -114,6 +116,7 @@ export function mergeUpcoming(countries: Country[]): MergedHoliday[] {
 					solarYear: h.solarYear,
 					daysUntil: h.daysUntil,
 					flags: [c.flag],
+					labels: [c.label],
 					colors: [c.color]
 				});
 			}

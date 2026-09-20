@@ -52,9 +52,14 @@
     // ── Country selection (multi) ──
 
     let selectedCodes = $state<CountryCode[]>(readSelectedCodes(country.code));
-    const activeCountries = $derived(
-        COUNTRIES.filter((c) => selectedCodes.includes(c.code)),
-    );
+    // The page's own country leads, so its name and colour speak first.
+    const activeCountries = $derived.by(() => {
+        const picked = COUNTRIES.filter((c) => selectedCodes.includes(c.code));
+        return [
+            ...picked.filter((c) => c.code === country.code),
+            ...picked.filter((c) => c.code !== country.code),
+        ];
+    });
     const multi = $derived(activeCountries.length > 1);
     const allFlags = $derived(activeCountries.map((c) => c.flag).join(""));
 
@@ -193,9 +198,10 @@
         shiftMonth(1);
     }
 
-    function goToMonth(month: number) {
+    function goToMonth(month: number, year: number) {
         calMonth = month;
-        selectDate(1, month, calYear);
+        calYear = year;
+        selectDate(1, month, year);
     }
 
     function goToday() {

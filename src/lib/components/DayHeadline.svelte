@@ -26,17 +26,21 @@
             (isToday && nextHoliday ? nextHoliday.colors[0] : null) ??
             "var(--out-month)",
     );
+
+    const flagList = $derived([...new Set(marks.map((m) => m.flag))]);
+
+    // Countries spell one holiday several ways, so the headline names it once,
+    // in the page country's own words, and the flags say who else observes it.
+    const fullList = $derived(marks.map((m) => `${m.flag} ${m.name}`).join(" · "));
 </script>
 
-<div class="next-holiday">
+<div class="next-holiday" class:dense={flagList.length > 1}>
     <i class="lead-dot" style:background={dotColor} aria-hidden="true"></i>
     {#if marks.length > 0}
-        <span class="holiday-title">
-            <span class="special-day"
-                >{#each marks as m, i}{i > 0 ? " · " : ""}<span
-                        style:color={m.color}>{m.flag} {m.name}</span
-                    >{/each}</span
-            >
+        <span class="special-day" style:color={marks[0].color} title={fullList}>
+            <span class="flag-group" aria-hidden="true"
+                >{#each flagList as f}<i>{f}</i>{/each}</span
+            >{marks[0].name}
         </span>
     {:else if isToday && nextHoliday}
         <span class="countdown-line">
@@ -62,23 +66,39 @@
 
 <style>
     .next-holiday {
-        font-size: 1.15rem;
+        --hl-size: 1.15rem;
+        font-size: var(--hl-size);
         font-weight: 600;
         letter-spacing: -0.01em;
+        line-height: 1.35;
         text-align: center;
+        text-wrap: balance;
         min-height: 1.8em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 4px 10px;
     }
 
+    .next-holiday.dense {
+        --hl-size: 1.05rem;
+    }
+
+    /* Inline so a wrapped headline never strands the dot on a line of its own. */
     .lead-dot {
+        display: inline-block;
+        vertical-align: 0.15em;
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        flex: none;
+        margin-right: 8px;
+    }
+
+    .flag-group {
+        display: inline-flex;
+        gap: 2px;
+        vertical-align: -0.08em;
+        margin-right: 7px;
+    }
+
+    .flag-group i {
+        font-style: normal;
     }
 
     .next-holiday strong {
@@ -112,18 +132,15 @@
         color: var(--text);
     }
 
-    .holiday-title {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
     @media (min-width: 768px) {
         .next-holiday {
-            font-size: 1.9rem;
+            --hl-size: 1.9rem;
             margin-bottom: 0;
             min-height: auto;
+        }
+
+        .next-holiday.dense {
+            --hl-size: 1.75rem;
         }
 
         .lead-dot {
@@ -135,12 +152,14 @@
     /* Wide screens: the headline becomes the sidebar's small title line. */
     @media (min-width: 1280px) {
         .next-holiday {
-            font-size: 1.05rem;
+            --hl-size: 1.05rem;
             font-weight: 600;
             text-align: left;
-            justify-content: flex-start;
             padding: 0 10px;
-            gap: 4px 8px;
+        }
+
+        .next-holiday.dense {
+            --hl-size: 0.95rem;
         }
 
         .lead-dot {

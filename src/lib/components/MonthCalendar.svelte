@@ -37,14 +37,14 @@
         onprev: () => void;
         onnext: () => void;
         onToday: () => void;
-        onPickMonth: (month: number) => void;
+        onPickMonth: (month: number, year: number) => void;
         ontoggleCountry: (country: Country) => void;
     } = $props();
 
     let showMonthPicker = $state(false);
 
-    function pick(m: number) {
-        onPickMonth(m);
+    function pick(m: number, y: number) {
+        onPickMonth(m, y);
         showMonthPicker = false;
     }
 
@@ -69,7 +69,7 @@
                 <span class="t-year">{year}</span>
             </button>
             {#if showMonthPicker}
-                <MonthPicker {month} onpick={pick} />
+                <MonthPicker {month} {year} onpick={pick} />
             {/if}
         </div>
         <CalendarNav

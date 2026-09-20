@@ -17,14 +17,14 @@
         todayActive: boolean;
         onprev: () => void;
         onnext: () => void;
-        onPickMonth: (month: number) => void;
+        onPickMonth: (month: number, year: number) => void;
         onToday: () => void;
     } = $props();
 
     let pickerOpen = $state(false);
 
-    function pick(m: number) {
-        onPickMonth(m);
+    function pick(m: number, y: number) {
+        onPickMonth(m, y);
         pickerOpen = false;
     }
 
@@ -46,10 +46,12 @@
         >
             <span class="t-month">Tháng {month}</span>
             <span class="t-year">{year}</span>
-            <span class="caret" aria-hidden="true">▾</span>
+            <span class="caret" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg>
+            </span>
         </button>
         {#if pickerOpen}
-            <MonthPicker {month} onpick={pick} />
+            <MonthPicker {month} {year} onpick={pick} />
         {/if}
     </div>
 
@@ -115,9 +117,25 @@
     }
 
     .caret {
-        font-size: 0.6rem;
+        display: flex;
+        align-items: center;
+        align-self: center;
         color: var(--text-muted);
-        line-height: 1;
+        transition: transform 0.18s;
+    }
+
+    .caret svg {
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .title-btn[aria-expanded='true'] .caret {
+        transform: rotate(180deg);
     }
 
     .actions {

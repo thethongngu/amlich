@@ -33,15 +33,15 @@
                 class="row"
                 onclick={() => onselect(h.solarDay, h.solarMonth, h.solarYear)}
                 title={`${h.flags.join(" ")} ${h.name}`}
-                aria-label={`${h.name}, ngày ${h.solarDay} tháng ${h.solarMonth}, ${format(h.daysUntil)}`}
+                aria-label={`${h.name}, ${(multi ? h.labels : h.labels.slice(0, 1)).join(", ")}, ngày ${h.solarDay} tháng ${h.solarMonth}, ${format(h.daysUntil)}`}
             >
                 <span class="date" aria-hidden="true">
                     <b>{h.solarDay}</b>
                     <em>Th{h.solarMonth}</em>
                 </span>
-                <span class="dots" aria-hidden="true">
-                    {#each multi ? h.colors : h.colors.slice(0, 1) as color}
-                        <i style:background={color}></i>
+                <span class="flags" aria-hidden="true">
+                    {#each multi ? h.flags : h.flags.slice(0, 1) as flag}
+                        <i>{flag}</i>
                     {/each}
                 </span>
                 <span class="h-name">{h.name}</span>
@@ -140,19 +140,18 @@
         color: var(--text-muted);
     }
 
-    /* One dot per country celebrating the day. */
-    .dots {
+    /* One flag per country celebrating the day. */
+    .flags {
         display: inline-flex;
-        gap: 3px;
+        align-items: center;
+        gap: 2px;
         flex: none;
-        line-height: 0;
+        font-size: 0.82rem;
+        line-height: 1;
     }
 
-    .dots i {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        display: block;
+    .flags i {
+        font-style: normal;
     }
 
     .h-name {
@@ -214,12 +213,12 @@
     /* Phone rows go two-line so long holiday names are never truncated. */
     .large .row {
         display: grid;
-        grid-template-columns: auto 1fr auto;
+        grid-template-columns: auto auto 1fr;
         grid-template-areas:
-            "date name  dots"
-            "date count dots";
+            "date flags name"
+            "date ..... count";
         align-items: center;
-        column-gap: 12px;
+        column-gap: 8px;
         row-gap: 2px;
         padding: 10px 2px;
         border-radius: var(--r-card);
@@ -227,17 +226,14 @@
 
     .large .date {
         display: flex;
+        margin-right: 4px;
     }
 
-    .large .dots {
-        grid-area: dots;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .large .dots i {
-        width: 7px;
-        height: 7px;
+    .large .flags {
+        grid-area: flags;
+        align-self: center;
+        gap: 3px;
+        font-size: 1.02rem;
     }
 
     .large .h-name {
