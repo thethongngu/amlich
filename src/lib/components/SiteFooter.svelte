@@ -1,20 +1,20 @@
 <script lang="ts">
     import type { Snippet } from "svelte";
 
-    /** Fixed footer; `settings` renders the settings popover inline. */
+    /**
+     * Fixed footer for tablet and desktop; `settings` renders the settings
+     * popover inline. Phones reach the same settings from the tab bar.
+     */
     let {
         gold = false,
-        phone = false,
         settings,
     }: {
         gold?: boolean;
-        /** Leaves room for the phone tab bar. */
-        phone?: boolean;
         settings: Snippet;
     } = $props();
 </script>
 
-<footer class="footer" class:gold-theme={gold} class:phone>
+<footer class="footer" class:gold-theme={gold}>
     <!-- Settings sits on its own line, above the credits. -->
     <div class="settings-line">{@render settings()}</div>
     <span class="sep lead-sep" aria-hidden="true">·</span>
@@ -74,23 +74,12 @@
         display: none;
     }
 
-    /* Phone: parked just above the tab bar. */
-    .footer.phone {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: calc(70px + env(safe-area-inset-bottom));
-        gap: 2px;
-        padding: 6px 16px 8px;
-        background: var(--page-bg);
-    }
-
     .kofi-link {
         color: var(--c-vn) !important;
     }
 
     .kofi-link:hover {
-        color: #9c2f27 !important;
+        color: var(--c-vn-strong) !important;
     }
 
     .footer.gold-theme .kofi-link {

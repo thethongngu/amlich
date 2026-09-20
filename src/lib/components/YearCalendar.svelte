@@ -110,8 +110,9 @@
 
     .cal-title {
         font-family: var(--font-display);
+        font-stretch: var(--display-stretch);
         font-size: 2.3rem;
-        font-weight: 400;
+        font-weight: 700;
         letter-spacing: -0.01em;
         line-height: 1;
         color: var(--text);
@@ -134,11 +135,9 @@
     }
 
     .month-name {
-        font-size: clamp(0.66rem, 0.68vw, 0.82rem);
+        font-size: clamp(0.76rem, 0.8vw, 0.94rem);
         font-weight: 600;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
+        color: var(--text);
         margin-bottom: clamp(8px, 1.1vh, 16px);
         text-align: center;
     }

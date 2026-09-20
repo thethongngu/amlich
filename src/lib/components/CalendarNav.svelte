@@ -40,7 +40,7 @@
     }
 
     .go-today-btn {
-        border: none;
+        border: 1px solid var(--border);
         border-radius: 999px;
         background: var(--surface-sunken);
         cursor: default;
@@ -64,6 +64,7 @@
 
     .go-today-btn.active:hover {
         background: var(--today-bg);
+        border-color: var(--today-bg);
         color: var(--today-fg);
     }
 
@@ -74,7 +75,7 @@
         width: 30px;
         height: 30px;
         border-radius: 999px;
-        border: none;
+        border: 1px solid var(--border);
         background: var(--surface-sunken);
         cursor: pointer;
         font-size: 1.05rem;
@@ -90,6 +91,7 @@
 
     .nav-btn:hover {
         background: var(--today-bg);
+        border-color: var(--today-bg);
         color: var(--today-fg);
     }
 

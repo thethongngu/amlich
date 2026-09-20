@@ -41,17 +41,17 @@ export interface Country {
  */
 export const COUNTRY_PALETTE = {
 	/** Việt Nam — red */
-	red: { color: '#be3a31', tint: '#f7e7e2' },
+	red: { color: '#b5231a', tint: '#fbe4e1' },
 	/** Trung Quốc — plum */
-	plum: { color: '#a63d6e', tint: '#f6e8ee' },
+	plum: { color: '#97245f', tint: '#fbe3ee' },
 	/** Nhật Bản — jade */
-	jade: { color: '#1e6f5c', tint: '#e2eee9' },
-	/** Hàn Quốc — indigo */
-	indigo: { color: '#3d6ba8', tint: '#e6ecf5' },
+	jade: { color: '#0e6b57', tint: '#dcefe8' },
+	/** Hồng Kông — azure */
+	azure: { color: '#1b5fa8', tint: '#e0ecfa' },
 	/** Đài Loan — violet */
-	violet: { color: '#7a6bb5', tint: '#ebe8f4' },
+	violet: { color: '#5e4ba8', tint: '#e9e6f9' },
 	/** Hoa Kỳ — olive */
-	olive: { color: '#4e7a2e', tint: '#e9efe0' }
+	olive: { color: '#3f6b1e', tint: '#e6efdb' }
 } as const;
 
 const vnCalendar: SolarHolidayCalendar = {
@@ -86,8 +86,8 @@ export const COUNTRIES: Country[] = [
 		flag: '🇭🇰',
 		label: 'Hồng Kông',
 		title: 'Âm lịch Hồng Kông - Ngày lễ',
-		// Jade rather than plum: keeps it clearly apart from the Việt Nam red.
-		...COUNTRY_PALETTE.jade,
+		// Azure: jade is reserved for lunar information across the whole UI.
+		...COUNTRY_PALETTE.azure,
 		calendar: hkCalendar,
 	},
 ];

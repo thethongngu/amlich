@@ -46,7 +46,7 @@
     .backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(43, 35, 24, 0.32);
+        background: var(--scrim);
         z-index: 300;
     }
 
@@ -57,9 +57,9 @@
         bottom: 0;
         z-index: 301;
         background: var(--surface);
-        border-radius: 26px 26px 0 0;
+        border-radius: 22px 22px 0 0;
         padding: 10px 18px calc(24px + env(safe-area-inset-bottom));
-        box-shadow: 0 -12px 40px -12px rgba(43, 35, 24, 0.32);
+        box-shadow: 0 -12px 40px -12px rgba(16, 23, 40, 0.4);
         max-height: 86vh;
         overflow-y: auto;
     }

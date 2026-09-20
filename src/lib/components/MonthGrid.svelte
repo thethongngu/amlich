@@ -7,10 +7,10 @@
      * `compact` switches to the denser, height-filling year-grid sizing.
      *
      * Visual language (see src/lib/theme.css):
-     *   • solar number in ink, Sunday in muted red, out-of-month in sand
-     *   • lunar number underneath in muted; mùng một in gold as "1/12"
-     *   • holidays wear their country's paper tint + coloured number
-     *   • today is ink-filled, the picked day gets an ink ring
+     *   • solar number in ink, Sunday in red, out-of-month in pale slate
+     *   • lunar number underneath in muted; mùng một in jade as "1/12"
+     *   • holidays wear their country's tint + coloured number
+     *   • today is ink-filled, the picked day gets a jade ring
      */
     let {
         days,
@@ -62,7 +62,7 @@
             <span class="ld" class:new-month={day.lunarDay === 1}>
                 {day.lunarDay === 1 ? `1/${day.lunarMonth}` : day.lunarDay}
             </span>
-            {#if day.marks.length > (large ? 0 : 1)}
+            {#if day.marks.length > 1}
                 <span class="dots">
                     {#each day.marks as mk}
                         <i style:background={mk.color}></i>
@@ -77,7 +77,7 @@
     .grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 2px;
+        gap: 3px;
     }
 
     .hdr {
@@ -99,7 +99,7 @@
         align-items: center;
         justify-content: center;
         min-height: 46px;
-        border-radius: 10px;
+        border-radius: var(--r-cell);
         gap: 1px;
         border: none;
         padding: 0;
@@ -113,29 +113,25 @@
         touch-action: manipulation;
     }
 
-    .cell:not(.is-today):hover {
-        box-shadow: inset 0 0 0 999px rgba(43, 35, 24, 0.045);
-    }
-
     .sd {
-        font-size: 0.88rem;
-        font-weight: 500;
+        font-size: 0.9rem;
+        font-weight: 600;
         line-height: 1.2;
         letter-spacing: -0.01em;
     }
 
     .ld {
-        font-size: 0.6rem;
+        font-size: 0.64rem;
         font-weight: 400;
         color: var(--text-muted);
         line-height: 1.15;
     }
 
-    /* Mùng một: gold, the only place a lunar date shouts. */
+    /* Mùng một: jade, the only place a lunar date shouts. */
     .ld.new-month {
         color: var(--accent);
-        font-weight: 500;
-        font-size: 0.55rem;
+        font-weight: 600;
+        font-size: 0.6rem;
     }
 
     .dots {
@@ -161,7 +157,7 @@
     /* A holiday's country colour wins over the Sunday red. */
     .cell.has-mark .sd {
         color: var(--mark, var(--text));
-        font-weight: 600;
+        font-weight: 700;
     }
 
     .cell.overflow .sd,
@@ -174,7 +170,7 @@
         color: var(--out-month);
     }
 
-    /* Today = ink fill, selection = ink ring: both keep the lunar date legible. */
+    /* Today is an ink fill, the picked day a jade ring: never the same mark. */
     .cell.is-today {
         background: var(--today-bg);
     }
@@ -192,22 +188,29 @@
         opacity: 0.75;
     }
 
-    .cell.is-today:hover {
-        background: #3a301f;
-    }
-
     .cell.is-selected {
-        box-shadow: inset 0 0 0 1.5px var(--text);
-    }
-
-    .cell.is-selected:hover {
-        box-shadow:
-            inset 0 0 0 1.5px var(--text),
-            inset 0 0 0 999px rgba(43, 35, 24, 0.045);
+        box-shadow: inset 0 0 0 2px var(--accent);
     }
 
     .cell.is-selected.is-today {
-        box-shadow: inset 0 0 0 1.5px var(--surface);
+        box-shadow: inset 0 0 0 2px var(--surface);
+    }
+
+    /* Touch screens keep :hover stuck on the last tapped cell, so gate it. */
+    @media (hover: hover) {
+        .cell:not(.is-today):hover {
+            box-shadow: inset 0 0 0 999px var(--hover-wash);
+        }
+
+        .cell.is-today:hover {
+            background: #23304f;
+        }
+
+        .cell.is-selected:hover {
+            box-shadow:
+                inset 0 0 0 2px var(--accent),
+                inset 0 0 0 999px var(--hover-wash);
+        }
     }
 
     @media (min-width: 768px) {
@@ -233,10 +236,10 @@
         }
     }
 
-    /* ── Large (phone): roomy cells, ringed today, dashes instead of dots ── */
+    /* ── Large (phone): roomy cells, dashes instead of dots ── */
 
     .grid.big {
-        gap: 4px 0;
+        gap: 5px 4px;
     }
 
     .grid.big .hdr {
@@ -246,8 +249,8 @@
     }
 
     .grid.big .cell {
-        min-height: 50px;
-        border-radius: 12px;
+        min-height: 46px;
+        border-radius: var(--r-card);
         gap: 1px;
     }
 
@@ -276,33 +279,6 @@
         border-radius: 2px;
     }
 
-    /* Phone: today is a ring, so the paper stays light. */
-    .grid.big .cell.is-today {
-        background: var(--bg, none);
-        box-shadow: inset 0 0 0 1.6px var(--text);
-    }
-
-    .grid.big .cell.is-today .sd {
-        color: var(--mark, var(--text));
-    }
-
-    .grid.big .cell.is-today.is-sunday .sd {
-        color: var(--sunday);
-    }
-
-    .grid.big .cell.is-today .ld {
-        color: var(--text-muted);
-        opacity: 1;
-    }
-
-    .grid.big .cell.is-today.is-sunday .ld {
-        color: var(--text-muted);
-    }
-
-    .grid.big .cell.is-selected:not(.is-today) {
-        box-shadow: inset 0 0 0 1.5px var(--out-month);
-    }
-
     /* ── Compact (year view): cells stretch to fill the month block ── */
 
     .grid.mini {
@@ -320,7 +296,7 @@
     .grid.mini .cell {
         min-height: 0;
         height: 100%;
-        border-radius: 9px;
+        border-radius: var(--r-cell);
         gap: 0;
     }
 

@@ -1,5 +1,6 @@
 <script lang="ts">
     import MonthGrid from "./MonthGrid.svelte";
+    import MonthPicker from "./MonthPicker.svelte";
     import CalendarNav from "./CalendarNav.svelte";
     import CountryPicker from "./CountryPicker.svelte";
     import type { DayCell } from "$lib/holidays";
@@ -68,17 +69,7 @@
                 <span class="t-year">{year}</span>
             </button>
             {#if showMonthPicker}
-                <div class="month-picker">
-                    {#each Array.from({ length: 12 }, (_, i) => i + 1) as m}
-                        <button
-                            class="month-btn"
-                            class:active={m === month}
-                            onclick={() => pick(m)}
-                        >
-                            {m}
-                        </button>
-                    {/each}
-                </div>
+                <MonthPicker {month} onpick={pick} />
             {/if}
         </div>
         <CalendarNav
@@ -136,28 +127,30 @@
         color: var(--text);
         padding: 4px 8px;
         margin-left: -8px;
-        border-radius: 10px;
+        border-radius: var(--r-cell);
         font-family: inherit;
         transition: background 0.15s;
     }
 
-    .cal-title:hover {
-        background: var(--surface-sunken);
+    @media (hover: hover) {
+        .cal-title:hover {
+            background: var(--surface-sunken);
+        }
     }
 
     .t-month {
-        font-size: 0.72rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
-        color: var(--text-secondary);
+        font-family: var(--font-display);
+        font-stretch: var(--display-stretch);
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--text);
     }
 
     .t-year {
-        font-family: var(--font-display);
-        font-size: 1.25rem;
-        font-weight: 400;
-        line-height: 1;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-muted);
     }
 
     .cal-footer {
@@ -166,53 +159,13 @@
         padding-top: 14px;
     }
 
-    .month-picker {
-        display: grid;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        margin-top: 4px;
-        background: var(--surface);
-        border-radius: 14px;
-        box-shadow: var(--popover-shadow);
-        padding: 8px;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 4px;
-        z-index: 30;
-    }
-
-    .month-btn {
-        width: 40px;
-        height: 36px;
-        border: none;
-        background: none;
-        border-radius: 10px;
-        font-family: inherit;
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-        cursor: pointer;
-        transition: background 0.1s;
-        touch-action: manipulation;
-    }
-
-    .month-btn:hover {
-        background: var(--surface-sunken);
-    }
-
-    .month-btn.active {
-        background: var(--today-bg);
-        color: var(--today-fg);
-        font-weight: 600;
-    }
-
     @media (min-width: 768px) {
         .cal {
             padding: 26px;
         }
 
-        .t-year {
-            font-size: 1.45rem;
+        .t-month {
+            font-size: 1.55rem;
         }
     }
 </style>

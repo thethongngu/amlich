@@ -62,12 +62,11 @@
 
 <style>
     .next-holiday {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
         font-weight: 600;
         letter-spacing: -0.01em;
         text-align: center;
-        margin-bottom: 16px;
-        min-height: 2.4em;
+        min-height: 1.8em;
         display: flex;
         align-items: center;
         justify-content: center;

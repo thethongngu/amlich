@@ -1,25 +1,17 @@
 /*
- * Global design tokens.
+ * Global design tokens — "mực & chàm": indigo ink on cool slate paper.
  *
- * Palette: warm "paper" neutrals tinted toward off-white, a gold accent for
- * lunar information and an ink accent for today. Country holiday colours live
- * in src/lib/countries.ts because they are data, not chrome — the raw palette
- * they pick from is documented below.
+ * Contrast is the point. Panels are pure white on a slate page so the edge
+ * between chrome and content is never in doubt, ink text clears 12:1, and the
+ * only hues on screen carry meaning: jade for lunar information, one accent per
+ * country for holidays, red for Sunday.
  *
- * Typography: Be Vietnam Pro for every piece of UI text (built for stacked
- * Vietnamese diacritics), Newsreader only for the two big date numbers and the
- * year in the calendar header.
+ * Country holiday colours live in src/lib/countries.ts because they are data.
  *
- * Components only ever reference these variables, so the Vía Thần Tài "gold"
- * theme is a single token override instead of dozens of per-selector rules.
+ * Typography: Be Vietnam Pro for UI text (built for stacked Vietnamese
+ * diacritics), Archivo at an expanded width for the big date numerals.
  */
 
-/*
- * Root font-size drives every `rem` in the app, so scaling it here shrinks the
- * whole UI — text and rem-based sizing/padding — proportionally, not just the
- * gaps between elements. Wide layouts pack in the full-year grid + sidebar, so
- * on large-but-dense screens we dial the base size down a notch.
- */
 html {
 	font-size: 16px;
 }
@@ -40,62 +32,86 @@ html {
 	--font-ui:
 		'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
 		sans-serif;
-	--font-display: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+	--font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+	--display-stretch: 112%;
 
-	/* ── Warm neutrals ── */
-	--page-bg: #efe9dd;
-	--surface: #fffcf6; /* cards / calendar panel */
-	--surface-sunken: #f7f1e6; /* chips */
-	--surface-hover: #f1e9da;
-	--border: #e4dccc;
-	--text: #2b2318; /* ink */
-	--text-secondary: #6b6154;
-	--text-muted: #8a7f6e;
-	--text-faint: #8a7f6e;
-	--out-month: #d6cebf;
+	/* ── Slate paper, white panels ── */
+	--page-bg: #e3e8f1;
+	--surface: #ffffff;
+	--surface-sunken: #edf1f8;
+	--surface-hover: #dde4f0;
+	--border: #c0cadc;
+	--border-strong: #9daac4;
 
-	/* ── Accents ── */
-	--accent: #b07c22; /* gold: lunar dates & mùng một */
-	--accent-strong: #8f6318;
-	--accent-soft: #f0e6d1;
-	--accent-soft-border: #dcc38c;
-	--sunday: #9c4a42;
-	--today-bg: #2b2318;
-	--today-fg: #fffcf6;
+	/* ── Indigo ink ── */
+	--text: #101728;
+	--text-secondary: #46516e;
+	--text-muted: #5a647f;
+	--text-faint: #737d99;
+	--out-month: #9aa5bd;
+	--hover-wash: rgba(16, 23, 40, 0.06);
+	--scrim: rgba(16, 23, 40, 0.42);
+
+	/* ── Jade: everything lunar ── */
+	--accent: #0b6a66;
+	--accent-strong: #06504d;
+	--accent-wash: #edf6f5;
+	--accent-soft: #d7eae8;
+	--accent-soft-border: #8cc4c0;
+
+	--sunday: #c0322a;
+	--today-bg: #101728;
+	--today-fg: #ffffff;
 
 	/* ── Country palette (one per country, matched lightness/chroma) ── */
-	--c-vn: #be3a31; /* Việt Nam — red */
-	--c-cn: #a63d6e; /* Trung Quốc — plum */
-	--c-jp: #1e6f5c; /* Nhật Bản — jade */
-	--c-kr: #3d6ba8; /* Hàn Quốc — indigo */
-	--c-tw: #7a6bb5; /* Đài Loan — violet */
-	--c-us: #4e7a2e; /* Hoa Kỳ — olive */
+	--c-vn: #b5231a; /* Việt Nam — red */
+	--c-vn-strong: #8c1a13;
+	--c-tw: #5e4ba8; /* Đài Loan — violet */
+	--c-hk: #1b5fa8; /* Hồng Kông — azure */
+	--c-cn: #97245f; /* Trung Quốc — plum */
+	--c-jp: #0e6b57; /* Nhật Bản — jade */
+	--c-us: #3f6b1e; /* Hoa Kỳ — olive */
 
-	--card-radius: 20px;
+	--r-panel: 16px;
+	--r-card: 12px;
+	--r-cell: 8px;
+	--card-radius: var(--r-panel);
+
+	/* The hairline is part of the shadow so every panel gets a visible edge. */
 	--card-shadow:
-		0 1px 2px rgba(43, 35, 24, 0.04), 0 10px 30px -12px rgba(43, 35, 24, 0.16);
+		0 0 0 1px var(--border), 0 1px 2px rgba(16, 23, 40, 0.05),
+		0 14px 28px -22px rgba(16, 23, 40, 0.5);
 	--popover-shadow:
-		0 2px 6px rgba(43, 35, 24, 0.06), 0 18px 40px -16px rgba(43, 35, 24, 0.28);
+		0 0 0 1px var(--border-strong), 0 16px 34px -14px rgba(16, 23, 40, 0.38);
 }
 
-/* ── Vía Thần Tài (10th day of lunar month 1) ── */
+/* Phones have no panels, so the page itself is the sheet of paper. */
+@media (max-width: 767px) {
+	:root {
+		--page-bg: #ffffff;
+	}
+}
+
+/* ── Vía Thần Tài (10th day of lunar month 1): the one warm day ── */
 
 .gold-theme {
-	--accent: #b07c22;
-	--accent-strong: #8f6318;
-	--accent-soft-border: #d9b45e;
+	--accent: #9a6b00;
+	--accent-strong: #785200;
+	--accent-wash: #fbf4e2;
+	--accent-soft: #f7ebcc;
+	--accent-soft-border: #d3ab52;
 }
 
 body:has(.gold-theme) {
-	background: #f3ead6;
+	background: #f4eeda;
 }
 
 .gold-shine {
 	position: relative;
-	background: linear-gradient(135deg, #fffdf7 0%, #fdf5e4 50%, #fffdf7 100%);
+	background: linear-gradient(135deg, #ffffff 0%, #fdf6e6 50%, #ffffff 100%);
 	box-shadow:
-		inset 0 0 0 1px #e6d3a6,
-		0 10px 30px -12px rgba(43, 35, 24, 0.18);
+		0 0 0 1px #e0cb96,
+		0 14px 28px -22px rgba(16, 23, 40, 0.5);
 }
 
 .gold-shine::before {
@@ -105,11 +121,11 @@ body:has(.gold-theme) {
 	background: linear-gradient(
 		105deg,
 		transparent 20%,
-		rgba(176, 124, 34, 0.06) 35%,
-		rgba(217, 180, 94, 0.18) 45%,
-		rgba(255, 255, 255, 0.36) 50%,
-		rgba(217, 180, 94, 0.18) 55%,
-		rgba(176, 124, 34, 0.06) 65%,
+		rgba(154, 107, 0, 0.06) 35%,
+		rgba(211, 171, 82, 0.2) 45%,
+		rgba(255, 255, 255, 0.4) 50%,
+		rgba(211, 171, 82, 0.2) 55%,
+		rgba(154, 107, 0, 0.06) 65%,
 		transparent 80%
 	);
 	background-size: 300% 100%;
@@ -130,6 +146,11 @@ body:has(.gold-theme) {
 
 /* ── Utilities ── */
 
+:where(button, a, [tabindex]):focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
 .sr-only {
 	position: absolute;
 	width: 1px;
@@ -145,4 +166,14 @@ body:has(.gold-theme) {
 body.resizing {
 	cursor: col-resize;
 	user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
 }

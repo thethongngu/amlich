@@ -1,6 +1,7 @@
 <script lang="ts">
     import { untrack } from "svelte";
     import { getTodayInfo, getDateInfo } from "$lib/calendar";
+    import { mediaQuery } from "$lib/breakpoints.svelte";
     import {
         COUNTRIES,
         getCountry,
@@ -22,22 +23,19 @@
         readShowMondays,
         writeShowMondays,
         readSidebarWidth,
-        writeSidebarWidth,
-        clampSidebarWidth,
-        SIDEBAR_MIN,
-        SIDEBAR_MAX,
     } from "$lib/prefs";
     import DayHeadline from "$lib/components/DayHeadline.svelte";
     import HeroCards from "$lib/components/HeroCards.svelte";
     import MobileHeader from "$lib/components/MobileHeader.svelte";
-    import MonthStrip from "$lib/components/MonthStrip.svelte";
-    import MonthGrid from "$lib/components/MonthGrid.svelte";
-    import DaySheet from "$lib/components/DaySheet.svelte";
+    import MonthCarousel from "$lib/components/MonthCarousel.svelte";
+    import CountryPicker from "$lib/components/CountryPicker.svelte";
     import TabBar, { type Tab } from "$lib/components/TabBar.svelte";
+    import PhoneMenu from "$lib/components/PhoneMenu.svelte";
     import MonthCalendar from "$lib/components/MonthCalendar.svelte";
     import YearCalendar from "$lib/components/YearCalendar.svelte";
     import UpcomingList from "$lib/components/UpcomingList.svelte";
     import SettingsMenu from "$lib/components/SettingsMenu.svelte";
+    import SidebarResizer from "$lib/components/SidebarResizer.svelte";
     import SiteFooter from "$lib/components/SiteFooter.svelte";
 
     /**
@@ -118,44 +116,35 @@
 
     // ── Breakpoints: phone layout below 768px, full-year grid from 1280px ──
 
-    // Seeded from matchMedia so the phone layout is right on first paint.
-    const matches = (q: string) =>
-        typeof window !== "undefined" && window.matchMedia(q).matches;
+    const yearView = mediaQuery("(min-width: 1280px)");
+    const phoneView = mediaQuery("(max-width: 767px)");
+    const wide = $derived(yearView.current);
+    const narrow = $derived(phoneView.current);
 
-    let wide = $state(matches("(min-width: 1280px)"));
-    let narrow = $state(matches("(max-width: 767px)"));
-    $effect(() => {
-        const yearMq = window.matchMedia("(min-width: 1280px)");
-        const phoneMq = window.matchMedia("(max-width: 767px)");
-        const update = () => {
-            wide = yearMq.matches;
-            narrow = phoneMq.matches;
-        };
-        update();
-        yearMq.addEventListener("change", update);
-        phoneMq.addEventListener("change", update);
-        return () => {
-            yearMq.removeEventListener("change", update);
-            phoneMq.removeEventListener("change", update);
-        };
+    // The phone carousel keeps the neighbouring months mounted so a drag can
+    // reveal them straight away.
+    const prevDays = $derived.by(() => {
+        if (!narrow) return [];
+        const p = addMonths(calMonth, calYear, -1);
+        return buildDays(p.month, p.year, activeCountries);
+    });
+    const nextDays = $derived.by(() => {
+        if (!narrow) return [];
+        const n = addMonths(calMonth, calYear, 1);
+        return buildDays(n.month, n.year, activeCountries);
     });
 
-    // ── Phone-only state: bottom tabs + day detail sheet ──
+    // ── Phone-only state: bottom tabs + settings sheet ──
 
     let tab = $state<Tab>("cal");
-    let sheetOpen = $state(false);
-
-    function selectCellMobile(day: number, month: number, year: number) {
-        selectCell(day, month, year);
-        sheetOpen = true;
-    }
+    let menuOpen = $state(false);
+    let carousel: MonthCarousel | null = $state(null);
 
     function goToHolidayMobile(day: number, month: number, year: number) {
         calMonth = month;
         calYear = year;
         selectDate(day, month, year);
         tab = "cal";
-        sheetOpen = true;
     }
 
     const yearMonths = $derived(
@@ -181,18 +170,28 @@
         selectDate(day, month, year);
     }
 
+    function addMonths(month: number, year: number, delta: number) {
+        const zeroBased = month - 1 + delta;
+        return {
+            month: (((zeroBased % 12) + 12) % 12) + 1,
+            year: year + Math.floor(zeroBased / 12),
+        };
+    }
+
+    function shiftMonth(delta: number) {
+        ({ month: calMonth, year: calYear } = addMonths(
+            calMonth,
+            calYear,
+            delta,
+        ));
+    }
+
     function prevMonth() {
-        if (calMonth === 1) {
-            calMonth = 12;
-            calYear--;
-        } else calMonth--;
+        shiftMonth(-1);
     }
 
     function nextMonth() {
-        if (calMonth === 12) {
-            calMonth = 1;
-            calYear++;
-        } else calMonth++;
+        shiftMonth(1);
     }
 
     function goToMonth(month: number) {
@@ -222,93 +221,87 @@
 
     let sidebarWidth = $state(readSidebarWidth());
     let pageEl: HTMLElement | null = $state(null);
-
-    function startResize(e: PointerEvent) {
-        if (!pageEl) return;
-        e.preventDefault();
-        const rect = pageEl.getBoundingClientRect();
-        const padLeft = parseFloat(getComputedStyle(pageEl).paddingLeft) || 0;
-        const originX = rect.left + padLeft;
-        const onMove = (ev: PointerEvent) => {
-            sidebarWidth = clampSidebarWidth(ev.clientX - originX);
-        };
-        const onUp = () => {
-            window.removeEventListener("pointermove", onMove);
-            window.removeEventListener("pointerup", onUp);
-            document.body.classList.remove("resizing");
-            writeSidebarWidth(sidebarWidth);
-        };
-        document.body.classList.add("resizing");
-        window.addEventListener("pointermove", onMove);
-        window.addEventListener("pointerup", onUp);
-    }
-
-    function resizeKey(e: KeyboardEvent) {
-        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-        e.preventDefault();
-        const step = (e.shiftKey ? 40 : 10) * (e.key === "ArrowLeft" ? -1 : 1);
-        sidebarWidth = clampSidebarWidth(sidebarWidth + step);
-        writeSidebarWidth(sidebarWidth);
-    }
 </script>
 
 <h1 class="sr-only">{country.title}</h1>
 
 {#if narrow}
-    <!-- ── Phone: header + month strip, calendar / upcoming tabs ── -->
+    <!-- ── Phone: the picked day up top, then the month it came from ── -->
     <main class="m-page" class:gold-theme={isThanTai}>
-        <MobileHeader
-            month={calMonth}
-            year={calYear}
-            {selectedCodes}
-            onprev={prevMonth}
-            onnext={nextMonth}
-            onToday={goToday}
-            ontoggleCountry={toggleCountry}
-        />
-        <MonthStrip month={calMonth} onpick={goToMonth} />
-        <div class="m-divider"></div>
-
         {#if tab === "cal"}
-            <MonthGrid
-                {days}
-                {selectedDay}
-                {selectedMonth}
-                {selectedYear}
-                large
-                onselect={selectCellMobile}
-            />
-            {#if holidays.length > 0}
-                <UpcomingList
-                    holidays={holidays.slice(0, 3)}
-                    {multi}
-                    large
-                    format={(d) => formatCountdown(d, showMondays)}
-                    onselect={goToHolidayMobile}
-                    onSeeAll={() => (tab = "upcoming")}
+            <div class="m-summary">
+                <DayHeadline
+                    marks={selectedMarks}
+                    isToday={isSelectedToday}
+                    isWeekend={isSelectedWeekend}
+                    {nextHoliday}
+                    countdown={nextHoliday
+                        ? formatCountdownHeading(
+                              nextHoliday.daysUntil,
+                              showMondays,
+                          )
+                        : ""}
+                    {allFlags}
+                    onholiday={goToHolidayMobile}
                 />
-            {/if}
+                <HeroCards
+                    {selected}
+                    {showBoth}
+                    offWork={selectedIsOffWork}
+                    gold={isThanTai}
+                    sheet
+                />
+            </div>
+
+            <div class="m-month">
+                <MobileHeader
+                    month={calMonth}
+                    year={calYear}
+                    todayActive={!isCurrentMonth || !isSelectedToday}
+                    onprev={() => carousel?.slide(-1)}
+                    onnext={() => carousel?.slide(1)}
+                    onPickMonth={goToMonth}
+                    onToday={goToday}
+                />
+
+                <MonthCarousel
+                    bind:this={carousel}
+                    {prevDays}
+                    {days}
+                    {nextDays}
+                    {selectedDay}
+                    {selectedMonth}
+                    {selectedYear}
+                    onselect={selectCell}
+                    onshift={shiftMonth}
+                />
+            </div>
+
+            <div class="m-countries">
+                <CountryPicker
+                    {selectedCodes}
+                    ontoggle={toggleCountry}
+                    sheet
+                />
+            </div>
         {:else}
             <UpcomingList
                 {holidays}
                 {multi}
                 large
-                showHeading={false}
                 format={(d) => formatCountdown(d, showMondays)}
                 onselect={goToHolidayMobile}
             />
         {/if}
 
-        <TabBar bind:tab />
+        <TabBar bind:tab onsettings={() => (menuOpen = true)} />
     </main>
 
-    <DaySheet
-        open={sheetOpen}
-        {selected}
-        marks={selectedMarks}
-        offWork={selectedIsOffWork}
-        gold={isThanTai}
-        onclose={() => (sheetOpen = false)}
+    <PhoneMenu
+        open={menuOpen}
+        bind:showBoth
+        bind:showMondays
+        onclose={() => (menuOpen = false)}
     />
 {:else}
 <main
@@ -391,25 +384,12 @@
     {/if}
 
     {#if wide}
-        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-        <div
-            class="resizer"
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="Kéo để đổi độ rộng cột trái"
-            aria-valuenow={Math.round(sidebarWidth)}
-            aria-valuemin={SIDEBAR_MIN}
-            aria-valuemax={SIDEBAR_MAX}
-            tabindex="0"
-            onpointerdown={startResize}
-            onkeydown={resizeKey}
-        ></div>
+        <SidebarResizer bind:width={sidebarWidth} page={pageEl} />
     {/if}
 </main>
-{/if}
 
-<SiteFooter gold={isThanTai} settings={settingsMenu} phone={narrow} />
+<SiteFooter gold={isThanTai} settings={settingsMenu} />
+{/if}
 
 {#snippet settingsMenu()}
     <SettingsMenu bind:showBoth bind:showMondays />
@@ -427,17 +407,34 @@
 
     /* ── Phone layout: flat on the page, no card chrome ── */
 
-    /* Bottom padding clears the fixed footer + tab bar. */
+    /* One rhythm for the whole phone page: 18px between blocks, tighter
+       inside them. The bottom padding clears the fixed tab bar. */
     .m-page {
+        --gutter: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
         max-width: 520px;
         margin: 0 auto;
-        padding: 18px 16px calc(152px + env(safe-area-inset-bottom));
+        padding: 12px var(--gutter) calc(74px + env(safe-area-inset-bottom));
     }
 
-    .m-divider {
-        height: 1px;
-        background: var(--border);
-        margin-bottom: 8px;
+    /* The picked day, answered before anything asks you to navigate. */
+    .m-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .m-month {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .m-countries {
+        display: flex;
+        justify-content: center;
     }
 
     .area-cal {
@@ -508,45 +505,4 @@
         }
     }
 
-    /* ── Sidebar resizer: sits on the year card's left edge ── */
-
-    .resizer {
-        display: none;
-    }
-
-    @media (min-width: 1280px) {
-        .resizer {
-            display: block;
-            grid-column: 2;
-            grid-row: 1 / -1;
-            justify-self: start;
-            align-self: stretch;
-            width: 12px;
-            margin-left: -6px;
-            cursor: col-resize;
-            background: transparent;
-            touch-action: none;
-            z-index: 5;
-        }
-
-        .resizer::after {
-            content: "";
-            display: block;
-            width: 4px;
-            height: 100%;
-            margin-left: 6px;
-            border-radius: 0 4px 4px 0;
-            background: transparent;
-            transition: background 0.15s;
-        }
-
-        .resizer:hover::after,
-        .resizer:focus-visible::after {
-            background: var(--accent-soft-border);
-        }
-
-        .resizer:focus-visible {
-            outline: none;
-        }
-    }
 </style>

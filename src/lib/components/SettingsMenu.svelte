@@ -103,7 +103,7 @@
         transform: translateX(-50%);
         text-align: left;
         background: var(--surface);
-        border-radius: 14px;
+        border-radius: var(--r-card);
         box-shadow: var(--popover-shadow);
         padding: 12px 16px;
         min-width: 200px;

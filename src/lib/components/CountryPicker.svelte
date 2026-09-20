@@ -102,7 +102,7 @@
         align-items: center;
         gap: 8px;
         padding: 6px 12px;
-        border: none;
+        border: 1px solid var(--border);
         border-radius: 999px;
         background: var(--surface-sunken);
         color: var(--text-secondary);
@@ -117,16 +117,22 @@
         touch-action: manipulation;
     }
 
-    .chip:hover,
     .chip.open {
         background: var(--surface-hover);
         color: var(--text);
     }
 
+    @media (hover: hover) {
+        .chip:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+    }
+
     /* Phone chip: comfy tap target, flags only. */
     .is-sheet .chip {
         padding: 8px 11px;
-        border-radius: 12px;
+        border-radius: var(--r-card);
     }
 
     /* Flags read as separate marks, so give them air. */
@@ -155,17 +161,15 @@
         min-width: 230px;
         padding: 12px 10px;
         background: var(--surface);
-        border-radius: 16px;
+        border-radius: var(--r-panel);
         box-shadow: var(--popover-shadow);
         text-align: left;
     }
 
     .panel-title {
-        font-size: 0.62rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--text-muted);
+        color: var(--text);
         padding: 2px 12px 10px;
     }
 
@@ -176,7 +180,7 @@
         width: 100%;
         padding: 9px 12px;
         border: none;
-        border-radius: 10px;
+        border-radius: var(--r-cell);
         background: none;
         font-family: inherit;
         font-size: 0.85rem;
@@ -191,8 +195,10 @@
         margin-top: 3px;
     }
 
-    .row:hover {
-        background: var(--surface-sunken);
+    @media (hover: hover) {
+        .row:hover {
+            background: var(--surface-sunken);
+        }
     }
 
     .row.on {
@@ -232,13 +238,12 @@
 
     .sheet-body .panel-title {
         padding: 2px 14px 12px;
-        font-size: 0.68rem;
-        letter-spacing: 0.14em;
+        font-size: 1rem;
     }
 
     .sheet-body .row {
         padding: 12px 14px;
-        border-radius: 14px;
+        border-radius: var(--r-card);
         font-size: 0.92rem;
         gap: 11px;
     }

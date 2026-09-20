@@ -9,7 +9,6 @@
         onselect,
         showHeading = true,
         large = false,
-        onSeeAll,
     }: {
         holidays: MergedHoliday[];
         multi: boolean;
@@ -19,8 +18,6 @@
         showHeading?: boolean;
         /** Phone sizing. */
         large?: boolean;
-        /** Renders the "Tất cả ›" link next to the heading. */
-        onSeeAll?: () => void;
     } = $props();
 </script>
 
@@ -28,10 +25,6 @@
     {#if showHeading}
         <div class="head">
             <h2>Sắp tới</h2>
-            {#if onSeeAll}
-                <span class="rule" aria-hidden="true"></span>
-                <button class="see-all" onclick={onSeeAll}>Tất cả ›</button>
-            {/if}
         </div>
     {/if}
     <div class="upcoming-list">
@@ -40,7 +33,12 @@
                 class="row"
                 onclick={() => onselect(h.solarDay, h.solarMonth, h.solarYear)}
                 title={`${h.flags.join(" ")} ${h.name}`}
+                aria-label={`${h.name}, ngày ${h.solarDay} tháng ${h.solarMonth}, ${format(h.daysUntil)}`}
             >
+                <span class="date" aria-hidden="true">
+                    <b>{h.solarDay}</b>
+                    <em>Th{h.solarMonth}</em>
+                </span>
                 <span class="dots" aria-hidden="true">
                     {#each multi ? h.colors : h.colors.slice(0, 1) as color}
                         <i style:background={color}></i>
@@ -76,32 +74,11 @@
     }
 
     .upcoming h2 {
-        font-size: 0.62rem;
+        font-size: 0.95rem;
         font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.16em;
+        color: var(--text);
         margin: 0;
         white-space: nowrap;
-    }
-
-    .rule {
-        flex: 1;
-        height: 1px;
-        background: var(--border);
-    }
-
-    .see-all {
-        border: none;
-        background: none;
-        padding: 2px 0;
-        font-family: inherit;
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-        cursor: pointer;
-        white-space: nowrap;
-        touch-action: manipulation;
     }
 
     /* Airier rows with a hairline between them. */
@@ -117,17 +94,50 @@
         cursor: pointer;
         font-family: inherit;
         color: var(--text);
-        border-radius: 10px;
+        border-radius: var(--r-cell);
         transition: background 0.15s;
         touch-action: manipulation;
     }
 
-    .row:hover {
-        background: var(--surface-sunken);
+    @media (hover: hover) {
+        .row:hover {
+            background: var(--surface-sunken);
+        }
     }
 
     .row:last-child {
         border-bottom: none;
+    }
+
+    /* The date column is phone-only; the sidebar has no room for it. */
+    .date {
+        display: none;
+        grid-area: date;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        width: 46px;
+        padding: 5px 0;
+        border-radius: var(--r-cell);
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        line-height: 1.1;
+    }
+
+    .date b {
+        font-family: var(--font-display);
+        font-stretch: var(--display-stretch);
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .date em {
+        font-style: normal;
+        font-size: 0.6rem;
+        font-weight: 500;
+        color: var(--text-muted);
     }
 
     /* One dot per country celebrating the day. */
@@ -186,14 +196,31 @@
     }
 
     .large h2 {
-        font-size: 0.64rem;
-        letter-spacing: 0.18em;
+        font-size: 1rem;
     }
 
+    /* Phone rows go two-line so long holiday names are never truncated. */
     .large .row {
-        padding: 13px 2px;
-        gap: 10px;
-        border-radius: 12px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas:
+            "date name  dots"
+            "date count dots";
+        align-items: center;
+        column-gap: 12px;
+        row-gap: 2px;
+        padding: 10px 2px;
+        border-radius: var(--r-card);
+    }
+
+    .large .date {
+        display: flex;
+    }
+
+    .large .dots {
+        grid-area: dots;
+        flex-direction: column;
+        gap: 4px;
     }
 
     .large .dots i {
@@ -202,17 +229,26 @@
     }
 
     .large .h-name {
-        font-size: 0.92rem;
+        grid-area: name;
+        font-size: 0.94rem;
         font-weight: 600;
+        line-height: 1.3;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
     }
 
     .large .h-count {
-        font-size: 0.84rem;
+        grid-area: count;
+        justify-self: start;
+        text-align: left;
+        margin-left: 0;
+        font-size: 0.8rem;
     }
 
     .large .h-count.h-today {
-        font-size: 0.75rem;
-        padding: 5px 12px;
+        font-size: 0.72rem;
+        padding: 3px 10px;
     }
 
     @media (min-width: 768px) {

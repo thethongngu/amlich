@@ -14,33 +14,25 @@
         /** Stamps "Được nghỉ" across the seam between the two cards. */
         offWork?: boolean;
         gold?: boolean;
-        /** Sheet variant: sunken chips, year inline, lunar year shown by parent. */
+        /** Phone variant: sunken panel, smaller numerals. */
         sheet?: boolean;
     } = $props();
 </script>
 
-<div class="hero-cards" class:sheet>
+<div class="hero-cards" class:sheet class:gold-shine={gold && !sheet}>
     {#if offWork}
         <img src="/duocnghi.png" alt="Được nghỉ" class="stamp" />
     {/if}
-    <section
-        class="hero solar-card"
-        class:hidden={!showBoth}
-        class:gold-shine={gold && !sheet}
-    >
+    <section class="hero solar-card" class:hidden={!showBoth}>
         <div class="card-title">Dương lịch</div>
         <div class="big-day solar-big-day">{selected.solarDay}</div>
-        {#if sheet}
-            <div class="card-info">
-                Tháng {selected.solarMonth}, {selected.solarYear}
-            </div>
-        {:else}
-            <div class="card-info">Tháng {selected.solarMonth}</div>
-            <div class="card-sub">{selected.solarYear}</div>
-        {/if}
+        <div class="card-info">
+            Tháng {selected.solarMonth}, {selected.solarYear}
+        </div>
+        <div class="card-sub">{selected.dayOfWeek}</div>
     </section>
 
-    <section class="hero lunar-card" class:gold-shine={gold && !sheet}>
+    <section class="hero lunar-card">
         <div class="card-title">Âm lịch</div>
         <div class="big-day lunar-big-day">{selected.lunarDay}</div>
         <div class="card-info">
@@ -48,17 +40,19 @@
                 ? " (Nhuận)"
                 : ""}
         </div>
-        {#if !sheet}
-            <div class="card-sub">Năm {selected.lunarYearName}</div>
-        {/if}
+        <div class="card-sub">Năm {selected.lunarYearName}</div>
     </section>
 </div>
 
 <style>
+    /* One panel split by a hairline, not two floating cards. */
     .hero-cards {
         position: relative;
         display: flex;
-        gap: 10px;
+        background: var(--surface);
+        border-radius: var(--r-panel);
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
     }
 
     /* Sits across the seam between the two cards. */
@@ -78,43 +72,46 @@
     .hero {
         flex: 1;
         text-align: center;
-        padding: 14px 10px 12px;
-        background: var(--surface);
-        border-radius: 18px;
-        box-shadow: var(--card-shadow);
+        padding: 16px 10px 14px;
         min-width: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
     }
 
+    .solar-card:not(.hidden) {
+        border-right: 1px solid var(--border);
+    }
+
     .hero.hidden {
         display: none;
     }
 
-    /* Small caps label — the quiet counterpart to the display numeral. */
     .card-title {
-        font-size: 0.62rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.16em;
+        font-size: 0.76rem;
+        font-weight: 500;
         color: var(--text-muted);
         margin-bottom: 2px;
     }
 
     .big-day {
         font-family: var(--font-display);
-        font-size: 4.2rem;
-        font-weight: 600;
+        font-stretch: var(--display-stretch);
+        font-size: 4.4rem;
+        font-weight: 700;
         line-height: 1;
-        margin: 4px 0 6px;
-        letter-spacing: -0.02em;
+        margin: 2px 0 6px;
+        letter-spacing: -0.015em;
         font-variant-numeric: lining-nums;
+    }
+
+    /* The lunar half is its own register, so the two dates never blur together. */
+    .lunar-card {
+        background: var(--accent-wash);
     }
 
     .lunar-card .card-title {
         color: var(--accent);
-        opacity: 0.75;
     }
 
     .solar-big-day {
@@ -140,23 +137,29 @@
     /* ── Sheet variant (phone day detail) ── */
 
     .hero-cards.sheet {
-        gap: 12px;
+        background: var(--surface-sunken);
+        box-shadow: 0 0 0 1px var(--border);
     }
 
     .sheet .hero {
-        background: var(--surface-sunken);
-        box-shadow: none;
-        border-radius: 18px;
-        padding: 14px 10px 15px;
+        padding: 10px 10px 12px;
+    }
+
+    .sheet .solar-card:not(.hidden) {
+        border-right-color: var(--border-strong);
+    }
+
+    .sheet .lunar-card {
+        background: var(--accent-soft);
     }
 
     .sheet .big-day {
-        font-size: 3.6rem;
-        margin: 4px 0 8px;
+        font-size: 2.9rem;
+        margin: 2px 0 5px;
     }
 
     .sheet .card-info {
-        font-size: 0.88rem;
+        font-size: 0.86rem;
     }
 
     @media (min-width: 768px) {
