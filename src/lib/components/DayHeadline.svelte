@@ -31,10 +31,29 @@
 
     // Countries spell one holiday several ways, so the headline names it once,
     // in the page country's own words, and the flags say who else observes it.
-    const fullList = $derived(marks.map((m) => `${m.flag} ${m.name}`).join(" · "));
+    const fullList = $derived(
+        marks.map((m) => `${m.flag} ${m.name}`).join(" · "),
+    );
+
+    const nextFlags = $derived(
+        nextHoliday ? [...new Set(nextHoliday.flags)] : [],
+    );
+
+    // Long names wrap into a ragged second line, so the type steps down first.
+    const lineLength = $derived.by(() => {
+        if (marks.length > 0) return marks[0].name.length + flagList.length * 3;
+        if (isToday && nextHoliday) {
+            return (
+                nextHoliday.name.length +
+                countdown.length +
+                nextFlags.length * 3
+            );
+        }
+        return 0;
+    });
 </script>
 
-<div class="next-holiday" class:dense={flagList.length > 1}>
+<div class="next-holiday" class:dense={lineLength > 30}>
     <i class="lead-dot" style:background={dotColor} aria-hidden="true"></i>
     {#if marks.length > 0}
         <span class="special-day" style:color={marks[0].color} title={fullList}>
@@ -44,9 +63,9 @@
         </span>
     {:else if isToday && nextHoliday}
         <span class="countdown-line">
-            {nextHoliday.flags.join("")} Còn <strong>{countdown}</strong>
-            nữa đến
-            <button
+            <span class="flag-group" aria-hidden="true"
+                >{#each nextFlags as f}<i>{f}</i>{/each}</span
+            ><button
                 class="holiday-link"
                 style:color={nextHoliday.colors[0]}
                 onclick={() =>
@@ -55,7 +74,7 @@
                         nextHoliday.solarMonth,
                         nextHoliday.solarYear,
                     )}>{nextHoliday.name}</button
-            >
+            ><span class="until">{countdown}</span>
         </span>
     {:else if isWeekend}
         <span class="special-day">{allFlags} Cuối tuần</span>
@@ -101,8 +120,18 @@
         font-style: normal;
     }
 
-    .next-holiday strong {
-        color: var(--accent);
+    /* The countdown trails the name as a quiet qualifier, not a headline. */
+    .until {
+        font-size: 0.78em;
+        font-weight: 500;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    .until::before {
+        content: "\00b7";
+        margin: 0 6px;
+        color: var(--text-faint);
         font-weight: 600;
     }
 
