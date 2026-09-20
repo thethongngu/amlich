@@ -59,12 +59,12 @@
         {#if todayActive}
             <button class="today" onclick={onToday}>Hôm nay</button>
         {/if}
-        <button class="nav" onclick={onprev} aria-label="Tháng trước"
-            >&lsaquo;</button
-        >
-        <button class="nav" onclick={onnext} aria-label="Tháng sau"
-            >&rsaquo;</button
-        >
+        <button class="nav" onclick={onprev} aria-label="Tháng trước">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg>
+        </button>
+        <button class="nav" onclick={onnext} aria-label="Tháng sau">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+        </button>
     </div>
 </div>
 
@@ -170,12 +170,19 @@
         border-radius: 999px;
         background: var(--surface-sunken);
         color: var(--text-secondary);
-        font-family: inherit;
-        font-size: 1.05rem;
-        line-height: 1;
         padding: 0;
         cursor: pointer;
         touch-action: manipulation;
+    }
+
+    .nav svg {
+        width: 17px;
+        height: 17px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
     }
 
     .today:active,

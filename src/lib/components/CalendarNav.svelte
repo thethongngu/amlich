@@ -24,12 +24,12 @@
         onclick={onToday}
         aria-label="Quay về hôm nay">Hôm nay</button
     >
-    <button class="nav-btn" onclick={onprev} aria-label={prevLabel}
-        >&lsaquo;</button
-    >
-    <button class="nav-btn" onclick={onnext} aria-label={nextLabel}
-        >&rsaquo;</button
-    >
+    <button class="nav-btn" onclick={onprev} aria-label={prevLabel}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg>
+    </button>
+    <button class="nav-btn" onclick={onnext} aria-label={nextLabel}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+    </button>
 </div>
 
 <style>
@@ -78,15 +78,22 @@
         border: 1px solid var(--border);
         background: var(--surface-sunken);
         cursor: pointer;
-        font-size: 1.05rem;
-        line-height: 1;
         padding: 0;
         color: var(--text-secondary);
-        font-family: inherit;
         transition:
             background 0.15s,
             color 0.15s;
         touch-action: manipulation;
+    }
+
+    .nav-btn svg {
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
     }
 
     .nav-btn:hover {
@@ -99,7 +106,11 @@
         .nav-btn {
             width: 32px;
             height: 32px;
-            font-size: 1.1rem;
+        }
+
+        .nav-btn svg {
+            width: 17px;
+            height: 17px;
         }
     }
 </style>

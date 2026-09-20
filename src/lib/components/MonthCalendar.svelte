@@ -63,10 +63,15 @@
         <div class="cal-title-wrap">
             <button
                 class="cal-title"
+                aria-expanded={showMonthPicker}
+                aria-label={`Tháng ${month} năm ${year}, chọn tháng khác`}
                 onclick={() => (showMonthPicker = !showMonthPicker)}
             >
                 <span class="t-month">Tháng {month}</span>
                 <span class="t-year">{year}</span>
+                <span class="caret" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg>
+                </span>
             </button>
             {#if showMonthPicker}
                 <MonthPicker {month} {year} onpick={pick} />
@@ -151,6 +156,28 @@
         font-size: 0.85rem;
         font-weight: 500;
         color: var(--text-muted);
+    }
+
+    .caret {
+        display: flex;
+        align-items: center;
+        align-self: center;
+        color: var(--text-muted);
+        transition: transform 0.18s;
+    }
+
+    .caret svg {
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .cal-title[aria-expanded='true'] .caret {
+        transform: rotate(180deg);
     }
 
     .cal-footer {

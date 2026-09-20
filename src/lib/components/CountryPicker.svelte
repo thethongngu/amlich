@@ -40,7 +40,9 @@
             {#each active as c}<span>{c.flag}</span>{/each}
         </span>
         <span class="chip-label">{label}</span>
-        <span class="caret" aria-hidden="true">▾</span>
+        <span class="caret" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg>
+        </span>
     </button>
 
     {#if open}
@@ -99,9 +101,25 @@
     }
 
     .caret {
-        font-size: 0.6rem;
+        display: flex;
+        align-items: center;
         color: var(--text-muted);
-        line-height: 1;
+        margin-right: -2px;
+        transition: transform 0.18s;
+    }
+
+    .caret svg {
+        width: 14px;
+        height: 14px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .chip.open .caret {
+        transform: rotate(180deg);
     }
 
     .panel {
