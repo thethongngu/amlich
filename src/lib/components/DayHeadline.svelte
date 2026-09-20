@@ -39,7 +39,7 @@
         nextHoliday ? [...new Set(nextHoliday.flags)] : [],
     );
 
-    // Long names wrap into a ragged second line, so the type steps down first.
+    // The row height is fixed, so long names step the type down instead.
     const lineLength = $derived.by(() => {
         if (marks.length > 0) return marks[0].name.length + flagList.length * 3;
         if (isToday && nextHoliday) {
@@ -54,19 +54,21 @@
 </script>
 
 <div class="next-holiday" class:dense={lineLength > 30}>
-    <i class="lead-dot" style:background={dotColor} aria-hidden="true"></i>
-    {#if marks.length > 0}
-        <span class="special-day" style:color={marks[0].color} title={fullList}>
+    <span class="line">
+        <i class="lead-dot" style:background={dotColor} aria-hidden="true"></i>
+        {#if marks.length > 0}
             <span class="flag-group" aria-hidden="true"
                 >{#each flagList as f}<i>{f}</i>{/each}</span
-            >{marks[0].name}
-        </span>
-    {:else if isToday && nextHoliday}
-        <span class="countdown-line">
+            >
+            <span class="name" style:color={marks[0].color} title={fullList}
+                >{marks[0].name}</span
+            >
+        {:else if isToday && nextHoliday}
             <span class="flag-group" aria-hidden="true"
                 >{#each nextFlags as f}<i>{f}</i>{/each}</span
-            ><button
-                class="holiday-link"
+            >
+            <button
+                class="name holiday-link"
                 style:color={nextHoliday.colors[0]}
                 onclick={() =>
                     onholiday(
@@ -74,45 +76,58 @@
                         nextHoliday.solarMonth,
                         nextHoliday.solarYear,
                     )}>{nextHoliday.name}</button
-            ><span class="until">{countdown}</span>
-        </span>
-    {:else if isWeekend}
-        <span class="special-day">{allFlags} Cuối tuần</span>
-    {:else}
-        <span class="normal-day">{allFlags} Ngày bình thường</span>
-    {/if}
+            >
+            <span class="until">{countdown}</span>
+        {:else if isWeekend}
+            <span class="flag-group" aria-hidden="true">{allFlags}</span>
+            <span class="name">Cuối tuần</span>
+        {:else}
+            <span class="flag-group" aria-hidden="true">{allFlags}</span>
+            <span class="name">Ngày bình thường</span>
+        {/if}
+    </span>
 </div>
 
 <style>
+    /* A fixed row height: switching days must never nudge the page up or down,
+       whatever the headline says. */
     .next-holiday {
         --hl-size: 1.15rem;
+        --hl-height: 2.1rem;
+        height: var(--hl-height);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: var(--hl-size);
         font-weight: 600;
         letter-spacing: -0.01em;
-        line-height: 1.35;
-        text-align: center;
-        text-wrap: balance;
-        min-height: 1.8em;
+        line-height: 1.2;
     }
 
     .next-holiday.dense {
         --hl-size: 1.05rem;
     }
 
-    /* Inline so a wrapped headline never strands the dot on a line of its own. */
+    .line {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        min-width: 0;
+        white-space: nowrap;
+    }
+
     .lead-dot {
-        display: inline-block;
-        vertical-align: 0.15em;
         width: 7px;
         height: 7px;
         border-radius: 50%;
+        flex: none;
         margin-right: 8px;
     }
 
     .flag-group {
         display: inline-flex;
         gap: 2px;
-        vertical-align: -0.08em;
+        flex: none;
         margin-right: 7px;
     }
 
@@ -120,12 +135,22 @@
         font-style: normal;
     }
 
+    /* Truncation is the last resort that keeps the row one line tall. */
+    .name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: inherit;
+        font-weight: 600;
+        color: var(--text);
+    }
+
     /* The countdown trails the name as a quiet qualifier, not a headline. */
     .until {
+        flex: none;
         font-size: 0.78em;
         font-weight: 500;
         color: var(--text-muted);
-        white-space: nowrap;
     }
 
     .until::before {
@@ -139,8 +164,6 @@
         background: none;
         border: none;
         font: inherit;
-        color: var(--accent);
-        font-weight: 600;
         cursor: pointer;
         padding: 0;
         text-decoration: underline;
@@ -154,18 +177,10 @@
         text-decoration-color: currentColor;
     }
 
-    .normal-day,
-    .special-day {
-        font-size: inherit;
-        font-weight: 600;
-        color: var(--text);
-    }
-
     @media (min-width: 768px) {
         .next-holiday {
             --hl-size: 1.9rem;
-            margin-bottom: 0;
-            min-height: auto;
+            --hl-height: 2.8rem;
         }
 
         .next-holiday.dense {
@@ -182,8 +197,8 @@
     @media (min-width: 1280px) {
         .next-holiday {
             --hl-size: 1.05rem;
-            font-weight: 600;
-            text-align: left;
+            --hl-height: 2.1rem;
+            justify-content: flex-start;
             padding: 0 10px;
         }
 
