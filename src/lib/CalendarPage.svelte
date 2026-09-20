@@ -285,7 +285,11 @@
             />
         {/if}
 
-        <TabBar bind:tab onsettings={() => (menuOpen = true)} />
+        <TabBar
+            bind:tab
+            settingsOpen={menuOpen}
+            onsettings={() => (menuOpen = true)}
+        />
     </main>
 
     <PhoneMenu

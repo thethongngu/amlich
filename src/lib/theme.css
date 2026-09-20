@@ -77,7 +77,7 @@ html {
 	--safe-b: env(safe-area-inset-bottom, 0px);
 	--safe-l: env(safe-area-inset-left, 0px);
 	--safe-r: env(safe-area-inset-right, 0px);
-	--tabbar-h: 50px;
+	--tabbar-h: 55px;
 	--tabbar-space: calc(var(--tabbar-h) + var(--safe-b));
 
 	--r-panel: 16px;
