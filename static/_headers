@@ -3,3 +3,15 @@
 
 /service-worker.js
   Cache-Control: no-cache
+
+/_app/immutable/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/
+  Cache-Control: no-cache
+
+/tw
+  Cache-Control: no-cache
+
+/hk
+  Cache-Control: no-cache

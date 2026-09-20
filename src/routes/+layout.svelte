@@ -1,7 +1,10 @@
 <script lang="ts">
 	import '$lib/theme.css';
 	import RedEnvelopes from '$lib/RedEnvelopes.svelte';
+	import { keepAppFresh } from '$lib/sw-update';
 	let { children } = $props();
+
+	$effect(keepAppFresh);
 </script>
 
 <RedEnvelopes />
