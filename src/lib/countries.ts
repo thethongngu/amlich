@@ -1,5 +1,5 @@
 // Country registry: the single place where per-country data is declared.
-// All three pages (/, /tw, /hk) render the same <CalendarPage /> component
+// All pages (/, /tw, /hk, /kr) render the same <CalendarPage /> component
 // and only differ by the entry they pass in.
 
 import {
@@ -9,10 +9,11 @@ import {
 	getUpcomingHolidays,
 } from '$lib/calendar';
 import { hkCalendar } from '$lib/calendar-hk';
+import { krCalendar } from '$lib/calendar-kr';
 import { twCalendar } from '$lib/calendar-tw';
 import type { SolarHolidayCalendar } from '$lib/solar-holidays';
 
-export type CountryCode = 'vn' | 'tw' | 'hk';
+export type CountryCode = 'vn' | 'tw' | 'hk' | 'kr';
 
 export interface Country {
 	code: CountryCode;
@@ -50,6 +51,8 @@ export const COUNTRY_PALETTE = {
 	azure: { color: '#1b5fa8', tint: '#e0ecfa' },
 	/** Đài Loan — violet */
 	violet: { color: '#5e4ba8', tint: '#e9e6f9' },
+	/** Hàn Quốc — amber */
+	amber: { color: '#9a5b00', tint: '#f8ebd5' },
 	/** Hoa Kỳ — olive */
 	olive: { color: '#3f6b1e', tint: '#e6efdb' }
 } as const;
@@ -89,6 +92,15 @@ export const COUNTRIES: Country[] = [
 		// Azure: jade is reserved for lunar information across the whole UI.
 		...COUNTRY_PALETTE.azure,
 		calendar: hkCalendar,
+	},
+	{
+		code: 'kr',
+		path: '/kr',
+		flag: '🇰🇷',
+		label: 'Hàn Quốc',
+		title: 'Âm lịch Hàn Quốc - Ngày lễ',
+		...COUNTRY_PALETTE.amber,
+		calendar: krCalendar,
 	},
 ];
 

@@ -10,7 +10,7 @@ const CACHE = `amlich-${version}`;
 // Static assets we don't want to spend cache quota on.
 const EXCLUDE = new Set(['/og-image.png', '/sitemap.xml', '/robots.txt', '/_headers']);
 
-// `build` = JS/CSS chunks, `files` = static/, `prerendered` = /, /hk, /tw
+// `build` = JS/CSS chunks, `files` = static/, `prerendered` = /, /hk, /tw, /kr
 const PRECACHE = [
 	...build,
 	...files.filter((f) => !EXCLUDE.has(f)),

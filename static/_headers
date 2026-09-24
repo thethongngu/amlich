@@ -15,3 +15,6 @@
 
 /hk
   Cache-Control: no-cache
+
+/kr
+  Cache-Control: no-cache
