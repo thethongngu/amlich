@@ -37,6 +37,22 @@
         onToday: () => void;
         ontoggleCountry: (country: Country) => void;
     } = $props();
+
+    const holidayCounts = $derived(
+        new Map(
+            countries.map((c) => [
+                c.code,
+                months.reduce(
+                    (n, m) =>
+                        n +
+                        m.days.filter((d) =>
+                            d.marks.some((k) => k.code === c.code),
+                        ).length,
+                    0,
+                ),
+            ]),
+        ),
+    );
 </script>
 
 <section class="year-cal" class:gold-shine={gold}>
@@ -74,6 +90,9 @@
             <span class="legend-item" style:color={c.color}>
                 <i class="swatch" style:background={c.color}></i>
                 {c.label}
+                <span class="legend-count"
+                    >{holidayCounts.get(c.code)} ngày lễ</span
+                >
             </span>
         {/each}
     </div>
@@ -93,10 +112,13 @@
         box-sizing: border-box;
     }
 
-    /* Header controls grow with the viewport, like the year grid below. */
-    .cal-header {
+    /* Header controls and legend grow with the viewport, like the year grid. */
+    .year-cal {
         --control-font: clamp(0.8rem, 0.9vw, 1.1rem);
         --nav-size: clamp(32px, 2.3vw, 44px);
+    }
+
+    .cal-header {
         display: grid;
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
@@ -152,23 +174,27 @@
         align-items: center;
         justify-content: center;
         flex-wrap: wrap;
-        gap: 6px 18px;
+        gap: 0.5em 1.6em;
         padding-top: 16px;
         margin-top: 4px;
+        font-size: var(--control-font);
     }
 
     .legend-item {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        font-size: 0.72rem;
+        gap: 0.5em;
         font-weight: 500;
         white-space: nowrap;
     }
 
+    .legend-count {
+        color: var(--text-muted);
+    }
+
     .swatch {
-        width: 6px;
-        height: 6px;
+        width: 0.5em;
+        height: 0.5em;
         border-radius: 50%;
         flex: none;
     }
