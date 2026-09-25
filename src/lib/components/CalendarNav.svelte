@@ -45,9 +45,9 @@
         background: var(--surface-sunken);
         cursor: default;
         color: var(--out-month);
-        padding: 6px 14px;
+        padding: 0.5em 1.15em;
         font-family: inherit;
-        font-size: 0.75rem;
+        font-size: var(--control-font, 0.75rem);
         font-weight: 500;
         line-height: 1.3;
         transition:
@@ -72,8 +72,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 30px;
-        height: 30px;
+        width: var(--nav-size, 30px);
+        height: var(--nav-size, 30px);
         border-radius: 999px;
         border: 1px solid var(--border);
         background: var(--surface-sunken);
@@ -87,8 +87,8 @@
     }
 
     .nav-btn svg {
-        width: 16px;
-        height: 16px;
+        width: 53%;
+        height: 53%;
         fill: none;
         stroke: currentColor;
         stroke-width: 2.2;
@@ -104,13 +104,8 @@
 
     @media (min-width: 768px) {
         .nav-btn {
-            width: 32px;
-            height: 32px;
-        }
-
-        .nav-btn svg {
-            width: 17px;
-            height: 17px;
+            width: var(--nav-size, 32px);
+            height: var(--nav-size, 32px);
         }
     }
 </style>

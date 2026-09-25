@@ -15,6 +15,7 @@
         marksForDate,
         mergeUpcoming,
         formatCountdown,
+        formatHeadlineCountdown,
     } from "$lib/holidays";
     import {
         readShowBoth,
@@ -240,7 +241,7 @@
                     isWeekend={isSelectedWeekend}
                     {nextHoliday}
                     countdown={nextHoliday
-                        ? formatCountdown(nextHoliday.daysUntil, showMondays)
+                        ? formatHeadlineCountdown(nextHoliday.daysUntil, showMondays)
                         : ""}
                     {allFlags}
                     onholiday={goToHolidayMobile}
@@ -316,7 +317,7 @@
             isWeekend={isSelectedWeekend}
             {nextHoliday}
             countdown={nextHoliday
-                ? formatCountdown(nextHoliday.daysUntil, showMondays)
+                ? formatHeadlineCountdown(nextHoliday.daysUntil, showMondays)
                 : ""}
             {allFlags}
             onholiday={goToHoliday}

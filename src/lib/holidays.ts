@@ -148,6 +148,12 @@ export function formatCountdown(daysUntil: number, showMondays: boolean): string
 	return `còn ${daysUntil} ngày`;
 }
 
+export function formatHeadlineCountdown(daysUntil: number, showMondays: boolean): string {
+	if (daysUntil === 1) return 'Ngày mai';
+	const text = formatCountdown(daysUntil, showMondays);
+	return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export function formatCountdownHeading(daysUntil: number, showMondays: boolean): string {
 	if (showMondays) {
 		const m = mondaysUntil(daysUntil);

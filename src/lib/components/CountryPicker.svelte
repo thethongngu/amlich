@@ -63,14 +63,14 @@
     .chip {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 6px 12px;
+        gap: 0.65em;
+        padding: 0.5em 1em;
         border: 1px solid var(--border);
         border-radius: 999px;
         background: var(--surface-sunken);
         color: var(--text-secondary);
         font-family: inherit;
-        font-size: 0.78rem;
+        font-size: var(--control-font, 0.78rem);
         font-weight: 500;
         cursor: pointer;
         white-space: nowrap;
@@ -95,8 +95,8 @@
     /* Flags read as separate marks, so give them air. */
     .flags {
         display: inline-flex;
-        gap: 4px;
-        font-size: 0.85rem;
+        gap: 0.3em;
+        font-size: 1.1em;
         line-height: 1;
     }
 
@@ -109,8 +109,8 @@
     }
 
     .caret svg {
-        width: 14px;
-        height: 14px;
+        width: 1.1em;
+        height: 1.1em;
         fill: none;
         stroke: currentColor;
         stroke-width: 2.6;

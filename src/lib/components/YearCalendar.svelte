@@ -93,7 +93,10 @@
         box-sizing: border-box;
     }
 
+    /* Header controls grow with the viewport, like the year grid below. */
     .cal-header {
+        --control-font: clamp(0.8rem, 0.9vw, 1.1rem);
+        --nav-size: clamp(32px, 2.3vw, 44px);
         display: grid;
         grid-template-columns: 1fr auto 1fr;
         align-items: center;

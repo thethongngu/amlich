@@ -20,12 +20,9 @@
         onholiday: (day: number, month: number, year: number) => void;
     } = $props();
 
-    // Status dot: the day's own colour, the next holiday's, or a quiet sand.
-    const dotColor = $derived(
-        marks[0]?.color ??
-            (isToday && nextHoliday ? nextHoliday.colors[0] : null) ??
-            "var(--out-month)",
-    );
+    const upcoming = $derived(marks.length === 0 && isToday && !!nextHoliday);
+
+    const dotColor = $derived(marks[0]?.color ?? "var(--out-month)");
 
     const flagList = $derived([...new Set(marks.map((m) => m.flag))]);
 
@@ -55,7 +52,10 @@
 
 <div class="next-holiday" class:dense={lineLength > 30}>
     <span class="line">
-        <i class="lead-dot" style:background={dotColor} aria-hidden="true"></i>
+        {#if !upcoming}
+            <i class="lead-dot" style:background={dotColor} aria-hidden="true"
+            ></i>
+        {/if}
         {#if marks.length > 0}
             <span class="flag-group" aria-hidden="true"
                 >{#each flagList as f}<i>{f}</i>{/each}</span
@@ -64,11 +64,16 @@
                 >{marks[0].name}</span
             >
         {:else if isToday && nextHoliday}
+            <span
+                class="until"
+                style:color={nextHoliday.colors[0]}
+                style:border-color={nextHoliday.colors[0]}>{countdown}</span
+            >
             <span class="flag-group" aria-hidden="true"
                 >{#each nextFlags as f}<i>{f}</i>{/each}</span
             >
             <button
-                class="name holiday-link"
+                class="name holiday-link upcoming"
                 style:color={nextHoliday.colors[0]}
                 onclick={() =>
                     onholiday(
@@ -77,7 +82,6 @@
                         nextHoliday.solarYear,
                     )}>{nextHoliday.name}</button
             >
-            <span class="until">{countdown}</span>
         {:else if isWeekend}
             <span class="flag-group" aria-hidden="true">{allFlags}</span>
             <span class="name">Cuối tuần</span>
@@ -145,19 +149,20 @@
         color: var(--text);
     }
 
-    /* The countdown trails the name as a quiet qualifier, not a headline. */
+    /* The badge comes first so nobody reads an upcoming holiday as today's. */
     .until {
         flex: none;
-        font-size: 0.78em;
-        font-weight: 500;
-        color: var(--text-muted);
+        margin-right: 8px;
+        padding: 0.1em 0.6em;
+        border: 1.5px solid;
+        border-radius: 999px;
+        font-size: 0.72em;
+        font-weight: 600;
+        line-height: 1.3;
     }
 
-    .until::before {
-        content: "\00b7";
-        margin: 0 6px;
-        color: var(--text-faint);
-        font-weight: 600;
+    .name.upcoming {
+        font-weight: 500;
     }
 
     .holiday-link {
