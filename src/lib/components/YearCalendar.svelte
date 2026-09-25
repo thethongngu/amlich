@@ -45,8 +45,12 @@
                 months.reduce(
                     (n, m) =>
                         n +
-                        m.days.filter((d) =>
-                            d.marks.some((k) => k.code === c.code),
+                        m.days.filter(
+                            (d) =>
+                                !d.isWeekend &&
+                                d.marks.some(
+                                    (k) => k.code === c.code && k.offWork,
+                                ),
                         ).length,
                     0,
                 ),
@@ -91,7 +95,7 @@
                 <i class="swatch" style:background={c.color}></i>
                 {c.label}
                 <span class="legend-count"
-                    >{holidayCounts.get(c.code)} ngày lễ</span
+                    >({holidayCounts.get(c.code)} ngày lễ)</span
                 >
             </span>
         {/each}
@@ -189,6 +193,8 @@
     }
 
     .legend-count {
+        font-size: 0.85em;
+        font-weight: 400;
         color: var(--text-muted);
     }
 
